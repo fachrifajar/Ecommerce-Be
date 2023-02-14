@@ -124,6 +124,37 @@ const createUsersCust = async (req, res) => {
     const salt = await bcrypt.genSalt(saltRounds);
     const hashedPassword = await bcrypt.hash(req.body.password, salt);
 
+    if (email) {
+      const checkEmailSeller = await models.checkEmailSeller({ email });
+      const checkEmail = await models.checkEmail({ email });
+
+      if (
+        (checkEmailSeller[0]?.email.toLowerCase() ||
+          checkEmail[0]?.email.toLowerCase()) == email.toLowerCase()
+      ) {
+        throw {
+          code: 409,
+          message: "User with the related email already exists",
+        };
+      }
+    }
+
+    if (username) {
+      const checkUsernameSellers = await models.checkUsernameSellers({
+        username,
+      });
+      const checkUsername = await models.checkUsername({ username });
+      if (
+        (checkUsernameSellers[0]?.username.toLowerCase() ||
+          checkUsername[0]?.username.toLowerCase()) == username.toLowerCase()
+      ) {
+        throw {
+          code: 401,
+          message: "User with the related username already exists",
+        };
+      }
+    }
+
     if (getEmail.length !== 0 && getUsername.length !== 0) {
       throw {
         code: 409,
@@ -174,6 +205,7 @@ const updateUsersCustPartial = async (req, res) => {
       address,
     } = req.body;
 
+    const sellerIdvalidator = req.seller_id;
     const roleValidator = req.users_id || null; // middleware for roleValidator
     const getRole = await models.getRoles({ roleValidator });
     const isAdmin = getRole[0]?.role;
@@ -181,6 +213,53 @@ const updateUsersCustPartial = async (req, res) => {
     const getAllData = await models.getUsersCustById({ id: roleValidator });
     if (getAllData.length == 0) {
       throw { code: 400, message: "ID not identified" };
+    }
+
+    if (email) {
+      const checkEmailSeller = await models.checkEmailSeller({ email });
+      const checkEmail = await models.checkEmail({ email });
+
+      if (
+        (checkEmailSeller[0]?.email.toLowerCase() ||
+          checkEmail[0]?.email.toLowerCase()) == email.toLowerCase()
+      ) {
+        throw {
+          code: 409,
+          message: "User with the related email already exists",
+        };
+      }
+    }
+
+    if (username) {
+      const checkUsernameSellers = await models.checkUsernameSellers({
+        username,
+      });
+      const checkUsername = await models.checkUsername({ username });
+      if (
+        (checkUsernameSellers[0]?.username.toLowerCase() ||
+          checkUsername[0]?.username.toLowerCase()) == username.toLowerCase()
+      ) {
+        throw {
+          code: 401,
+          message: "User with the related username already exists",
+        };
+      }
+    }
+
+    if (phone_number) {
+      const getPhoneNumber = await models.getPhoneNumber({ phone_number });
+      const getPhoneSeller = await models.getPhoneSeller({ phone_number });
+      if ((getPhoneNumber || getPhoneSeller).length !== 0) {
+        throw {
+          code: 401,
+          message: "User with the provided phone number already exists",
+        };
+      } else {
+        await models.updateUsersSellerParallel({
+          phone_number,
+          id: sellerIdvalidator,
+        });
+      }
     }
 
     if (!req.files) {
@@ -388,7 +467,7 @@ const updateUsersCustAll = async (req, res) => {
     if (getAllData.length == 0) {
       throw { code: 400, message: "ID not identified" };
     }
-    console.log(usersid)
+    console.log(usersid);
     if (isAdmin == "admin" || usersid == roleValidator) {
       if (!req.files) {
         if (password == undefined) {

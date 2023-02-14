@@ -40,6 +40,7 @@ app.use(
 
 // koneksi routes
 app.use("/customer", require("./routes/customer"));
+app.use("/seller", require("./routes/seller"));
 app.use("/auth", require("./routes/auth"));
 // app.use("/movies", require("./routes/movies"));
 // app.use("/schedules", require("./routes/schedules"));

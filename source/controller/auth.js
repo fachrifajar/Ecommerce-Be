@@ -21,6 +21,7 @@ const login = async (req, res) => {
               id: foundUsers[0]?.users_id,
               name: foundUsers[0]?.username,
               iat: new Date().getTime(),
+              seller_id: foundUsers[0]?.seller_id,
             },
             accToken,
             { expiresIn: "2000s" }

@@ -64,6 +64,7 @@ const validateRole = (req, res, next) => {
         else {
           // return decoded.id
           req.users_id = decoded.id;
+          req.seller_id = decoded.seller_id;
           next();
         }
       });
