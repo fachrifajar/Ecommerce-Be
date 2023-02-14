@@ -97,6 +97,24 @@ const getUsersCust = async (req, res) => {
   }
 };
 
+const getSpecificUsersCust = async (req, res) => {
+  try {
+    const idValidator = req.users_id; // middleware for roleValidator
+
+    const profileData = await models.getProfile({ idValidator });
+
+    res.json({
+      message: `Get User (cust) With Id: ${idValidator}`,
+      data: profileData,
+    });
+  } catch (error) {
+    res.status(400).json({
+      message: "Bad Request",
+      error: error,
+    });
+  }
+};
+
 const createUsersCust = async (req, res) => {
   try {
     const { email, username, password } = req.body;
@@ -157,6 +175,8 @@ const updateUsersCustPartial = async (req, res) => {
     } = req.body;
 
     const roleValidator = req.users_id || null; // middleware for roleValidator
+    const getRole = await models.getRoles({ roleValidator });
+    const isAdmin = getRole[0]?.role;
 
     const getAllData = await models.getUsersCustById({ id: roleValidator });
     if (getAllData.length == 0) {
@@ -345,8 +365,224 @@ const updateUsersCustPartial = async (req, res) => {
   }
 };
 
+const updateUsersCustAll = async (req, res) => {
+  try {
+    const {
+      email,
+      phone_number,
+      username,
+      password,
+      profile_picture,
+      gender,
+      date_of_birth,
+      address,
+    } = req.body;
+
+    const { usersid } = req.params;
+
+    const roleValidator = req.users_id || null; // middleware for roleValidator
+    const getRole = await models.getRoles({ roleValidator });
+    const isAdmin = getRole[0]?.role;
+
+    const getAllData = await models.getUsersCustById({ id: usersid });
+    if (getAllData.length == 0) {
+      throw { code: 400, message: "ID not identified" };
+    }
+    console.log(usersid)
+    if (isAdmin == "admin" || usersid == roleValidator) {
+      if (!req.files) {
+        if (password == undefined) {
+          await models.updateUsersCustPartial({
+            email,
+            defaultValue: getAllData[0],
+            phone_number,
+            username,
+            password,
+            profile_picture,
+            id: usersid,
+            gender,
+            date_of_birth,
+            address,
+          });
+        } else {
+          bcrypt.hash(password, saltRounds, async function (err, hash) {
+            try {
+              if (err) {
+                throw "Failed Authenticate, please try again";
+                // throw new Error(400)
+              }
+              await models.updateUsersCustPartial({
+                email,
+                defaultValue: getAllData[0],
+                phone_number,
+                username,
+                password: hash,
+                profile_picture,
+                id: usersid,
+                gender,
+                date_of_birth,
+                address,
+              });
+            } catch (error) {
+              res.status(error?.code ?? 500).json({
+                message: error.message ?? error,
+              });
+            }
+          });
+        }
+
+        res.json({
+          status: "true",
+          message: "data updated",
+          data: {
+            id: usersid,
+            ...req.body,
+          },
+        });
+      } else {
+        if (getAllData.length == 0) {
+          throw { code: 400, message: "ID not identified" };
+        } else {
+          if (password == undefined) {
+            let file = req.files.profile_picture;
+
+            cloudinary.v2.uploader.destroy(
+              getAllData[0].profile_picture,
+              function (error, result) {
+                console.log(result, error);
+              }
+            );
+
+            cloudinary.v2.uploader.upload(
+              file.tempFilePath,
+              { public_id: uuidv4(), folder: "ecommerce" },
+              async function (error, result) {
+                if (error) {
+                  throw error;
+                }
+
+                await models.updateUsersCustPartial({
+                  email,
+                  defaultValue: getAllData[0],
+                  phone_number,
+                  username,
+                  password,
+                  profile_picture: result.public_id,
+                  id: usersid,
+                  gender,
+                  date_of_birth,
+                  address,
+                });
+              }
+            );
+          } else {
+            let file = req.files.profile_picture;
+
+            cloudinary.v2.uploader.destroy(
+              getAllData[0].profile_picture,
+              function (error, result) {
+                console.log(result, error);
+              }
+            );
+
+            cloudinary.v2.uploader.upload(
+              file.tempFilePath,
+              { public_id: uuidv4(), folder: "ecommerce" },
+              async function (error, result) {
+                if (error) {
+                  throw "Upload failed";
+                }
+                bcrypt.hash(password, saltRounds, async function (err, hash) {
+                  try {
+                    if (err) {
+                      throw "Failed Authenticate, please try again";
+                    }
+
+                    await models.updateUsersCustPartial({
+                      email,
+                      defaultValue: getAllData[0],
+                      phone_number,
+                      username,
+                      password: hash,
+                      profile_picture: result.public_id,
+                      id: usersid,
+                      gender,
+                      date_of_birth,
+                      address,
+                    });
+                  } catch (error) {
+                    res.status(500).json({
+                      message: error.message,
+                    });
+                  }
+                });
+              }
+            );
+          }
+
+          res.json({
+            status: "true",
+            message: "data updated",
+            data: {
+              id: usersid,
+              ...req.body,
+            },
+            profile_picture: req.files.profile_picture.name,
+          });
+        }
+      }
+    } else {
+      throw {
+        code: 401,
+        message:
+          "Access not granted, only admin & valid user can access this section!",
+      };
+    }
+  } catch (error) {
+    if (error.code == "23505") {
+      if (
+        error.message ==
+        'duplicate key value violates unique constraint "email_customer"'
+      ) {
+        res.status(422).json({
+          message: "User with the provided email already exists",
+        });
+      }
+      if (
+        error.message ==
+        'duplicate key value violates unique constraint "username_customer"'
+      ) {
+        res.status(422).json({
+          message: "User with the provided username already exists",
+        });
+      }
+      if (
+        error.message ==
+        'duplicate key value violates unique constraint "phone_number_customer"'
+      ) {
+        res.status(422).json({
+          message: "User with the provided phone number already exists",
+        });
+      }
+      const statusCode =
+        error?.code && 100 <= error.code && error.code <= 599
+          ? error.code
+          : 500;
+      res.status(statusCode).json({
+        message: error.message ?? error,
+      });
+    } else {
+      res.status(500).json({
+        message: error.message,
+      });
+    }
+  }
+};
+
 module.exports = {
   getUsersCust,
+  getSpecificUsersCust,
   createUsersCust,
   updateUsersCustPartial,
+  updateUsersCustAll,
 };

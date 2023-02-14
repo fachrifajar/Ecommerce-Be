@@ -15,6 +15,14 @@ router.post(
 
 // READ
 router.get(
+  "/detail",
+  authMiddleware.validateToken,
+  authMiddleware.validateRole,
+  usersController.getSpecificUsersCust
+);
+
+// READ
+router.get(
   "/:id?",
   redisMiddleware.getUsersCust_redis,
   usersController.getUsersCust
@@ -22,21 +30,39 @@ router.get(
 
 // UPDATE
 router.patch(
-  '/edit',
+  "/edit",
   authMiddleware.validateToken,
   authMiddleware.validateRole,
   uploadMiddleware.fileExtLimiter([
-    '.png',
-    '.jpg',
-    '.jpeg',
-    '.PNG',
-    '.JPG',
-    '.JPEG',
+    ".png",
+    ".jpg",
+    ".jpeg",
+    ".PNG",
+    ".JPG",
+    ".JPEG",
   ]),
   uploadMiddleware.fileSizeLimiter,
   middleware.updateUsersPartialValidator,
   usersController.updateUsersCustPartial
-)
+);
+
+// UPDATE
+router.patch(
+  "/edit/:usersid",
+  authMiddleware.validateToken,
+  authMiddleware.validateRole,
+  uploadMiddleware.fileExtLimiter([
+    ".png",
+    ".jpg",
+    ".jpeg",
+    ".PNG",
+    ".JPG",
+    ".JPEG",
+  ]),
+  uploadMiddleware.fileSizeLimiter,
+  middleware.updateUsersPartialValidator,
+  usersController.updateUsersCustAll
+);
 
 // // DELETE
 // router.delete(

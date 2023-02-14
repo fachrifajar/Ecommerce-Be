@@ -10,6 +10,12 @@ const getUsersCustById = async (params) => {
   return await db`SELECT * FROM customers WHERE users_id = ${id}`;
 };
 
+const getProfile = async (params) => {
+  const { idValidator } = params;
+
+  return await db`SELECT * FROM customers WHERE users_id = ${idValidator}`;
+};
+
 const getAllUsersCustPaginationSort = async (params) => {
   const { limit, page, sort } = params;
 
@@ -101,7 +107,7 @@ const deleteUsers = async (params) => {
 const getRoles = async (params) => {
   const { roleValidator } = params;
 
-  return await db`SELECT role from users WHERE users_id = ${roleValidator}`;
+  return await db`SELECT role from customers WHERE users_id = ${roleValidator}`;
 };
 
 module.exports = {
@@ -118,4 +124,5 @@ module.exports = {
   updateUsersCustPartial,
   deleteUsers,
   getRoles,
+  getProfile,
 };
