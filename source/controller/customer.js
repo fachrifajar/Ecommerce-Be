@@ -4,6 +4,7 @@ const bcrypt = require("bcrypt");
 const saltRounds = 10;
 const { connectRedis } = require("../middleware/redis");
 const { cloudinary } = require("../middleware/upload");
+const moment = require("moment-timezone");
 
 const getUsersCust = async (req, res) => {
   try {
@@ -187,6 +188,59 @@ const createUsersCust = async (req, res) => {
     });
   } catch (error) {
     res.status(error?.code ?? 500).json({
+      message: error,
+    });
+  }
+};
+
+const addAddressCust = async (req, res) => {
+  try {
+    const {
+      type_of_address,
+      recipient_name,
+      recipient_phone_number,
+      address,
+      postal_code,
+      city,
+      primary_address,
+    } = req.body;
+
+    const idValidator = req.users_id; // middleware for roleValidator
+    let updated_at_inject;
+
+    if (primary_address) {
+      await models.addAddressManipulate({
+        type_of_address,
+        recipient_name,
+        recipient_phone_number,
+        address,
+        postal_code,
+        city,
+        users_id: idValidator,
+        primary_address: primary_address || 0,
+      });
+    } else {
+      updated_at_inject = 0;
+      const addData = await models.addAddress({
+        type_of_address,
+        recipient_name,
+        recipient_phone_number,
+        address,
+        postal_code,
+        city,
+        users_id: idValidator,
+        primary_address: primary_address || 0,
+        updated_at: updated_at_inject,
+      });
+    }
+
+    res.status(201).json({
+      code: 201,
+      message: "Success add new address (customer)",
+      data: req.body,
+    });
+  } catch (error) {
+    res.status(500).json({
       message: error,
     });
   }
@@ -658,10 +712,156 @@ const updateUsersCustAll = async (req, res) => {
   }
 };
 
+const editAddressCust = async (req, res) => {
+  try {
+    const {
+      type_of_address,
+      recipient_name,
+      recipient_phone_number,
+      address,
+      postal_code,
+      city,
+      primary_address,
+    } = req.body;
+    const { addressid } = req.params;
+
+    const idValidator = req.users_id;
+    const getRole = await models.getRoles({ roleValidator: idValidator });
+    const isAdmin = getRole[0]?.role;
+
+    console.log(isAdmin);
+    console.log(idValidator);
+
+    const getAllData = await models.getUsersCustById({ id: idValidator });
+    if (getAllData.length == 0) {
+      throw { code: 400, message: "ID not identified" };
+    }
+
+    let valid = false;
+    let index;
+    for (let i = 0; i < getAllData[0]?.addresses?.length; i++) {
+      if (getAllData[0]?.addresses[i]?.address_id == addressid) {
+        valid = true;
+        index = i;
+      }
+    }
+
+    if (isAdmin == "admin" || valid) {
+      if (primary_address && primary_address == 1) {
+        await models.editAddress({
+          type_of_address,
+          recipient_name,
+          recipient_phone_number,
+          address,
+          postal_code,
+          city,
+          id: addressid,
+          defaultValue: getAllData[0]?.addresses[index],
+          primary_address,
+        });
+      }
+      if (primary_address == 0) {
+        await models.editAddressManipulate({
+          type_of_address,
+          recipient_name,
+          recipient_phone_number,
+          address,
+          postal_code,
+          city,
+          id: addressid,
+          defaultValue: getAllData[0]?.addresses[index],
+          primary_address,
+          updated_at: 0,
+        });
+      }
+
+      if (!primary_address) {
+        await models.editAddress({
+          type_of_address,
+          recipient_name,
+          recipient_phone_number,
+          address,
+          postal_code,
+          city,
+          id: addressid,
+          defaultValue: getAllData[0]?.addresses[index],
+          primary_address,
+        });
+      }
+
+      res.json({
+        status: "true",
+        message: "address updated",
+        data: {
+          id: idValidator,
+          ...req.body,
+        },
+      });
+    } else {
+      throw {
+        code: 401,
+        message:
+          "Access not granted, only admin & valid user can access this section!",
+      };
+    }
+  } catch (error) {
+    const statusCode =
+      error?.code && 100 <= error.code && error.code <= 599 ? error.code : 500;
+    res.status(statusCode).json({
+      message: error.message ?? error,
+    });
+  }
+};
+
+const deleteAddress = async (req, res) => {
+  try {
+    const { addressid } = req.params;
+
+    const idValidator = req.users_id;
+    const getRole = await models.getRoles({ roleValidator: idValidator });
+    const isAdmin = getRole[0]?.role;
+
+    console.log(isAdmin);
+    console.log(idValidator);
+
+    const getAllData = await models.getUsersCustById({ id: idValidator });
+    if (getAllData.length == 0) {
+      throw { code: 400, message: "ID not identified" };
+    }
+
+    let valid = false;
+    for (let i = 0; i < getAllData[0]?.addresses?.length; i++) {
+      if (getAllData[0]?.addresses[i]?.address_id == addressid) {
+        valid = true;
+      }
+    }
+    console.log(valid);
+    if (isAdmin == "admin" || valid) {
+      await models.deleteAddress({ id: addressid });
+      res.json({
+        status: "true",
+        message: "ADDRESS DELETED!",
+      });
+    } else {
+      throw {
+        code: 401,
+        message: "Access not granted, only admin can access this section!",
+      };
+    }
+  } catch (error) {
+    res.status(error?.code ?? 500).json({
+      message: error.message,
+    });
+  }
+};
+
 module.exports = {
   getUsersCust,
   getSpecificUsersCust,
   createUsersCust,
   updateUsersCustPartial,
   updateUsersCustAll,
+  addAddressCust,
+  editAddressCust,
+  deleteAddress,
 };

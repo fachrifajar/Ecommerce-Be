@@ -13,6 +13,15 @@ router.post(
   usersController.createUsersCust
 );
 
+// CREATE
+router.post(
+  "/address/add",
+  authMiddleware.validateToken,
+  authMiddleware.validateRole,
+  middleware.addAddressValidator,
+  usersController.addAddressCust
+);
+
 // READ
 router.get(
   "/detail",
@@ -64,12 +73,21 @@ router.patch(
   usersController.updateUsersCustAll
 );
 
-// // DELETE
-// router.delete(
-//   "/delete/:id",
-//   authMiddleware.validateToken,
-//   authMiddleware.validateRole,
-//   usersController.deleteUsers
-// );
+// UPDATE
+router.patch(
+  "/address/edit/:addressid?",
+  authMiddleware.validateToken,
+  authMiddleware.validateRole,
+  middleware.updateAddressValidator,
+  usersController.editAddressCust
+);
+
+// DELETE
+router.delete(
+  "/address/delete/:addressid",
+  authMiddleware.validateToken,
+  authMiddleware.validateRole,
+  usersController.deleteAddress
+);
 
 module.exports = router;
