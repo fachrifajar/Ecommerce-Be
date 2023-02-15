@@ -23,7 +23,7 @@ const addAddressValidator = (req, res, next) => {
 
   addCustomMessages({
     "type_of_address.regexTypeOfAddress": `Only accept "home" / "office"`,
-    "primary_address.regexPrimaryAddress": `Only accept 1, thats mean primary. if dont want to set primary_address, please uncheck this (primary_address) form.`,
+    "primary_address.regexPrimaryAddress": `Only accept 1 (primary) and 0 (non-primary address)`,
   });
   //password: 'required|regexPass|minLength:8|maxLength:20',
   const rules = new Validator(req.body, {
@@ -251,7 +251,7 @@ const updateAddressValidator = (req, res, next) => {
 
   addCustomMessages({
     "type_of_address.regexTypeOfAddress": `Only accept "home" / "office"`,
-    "primary_address.regexPrimaryAddress": `Only accept 1, thats mean primary. if dont want to set primary_address, please uncheck this (primary_address) form.`,
+    "primary_address.regexPrimaryAddress": `Only accept 1 (primary) and 0 (non-primary address)`,
   });
 
   const rules = new Validator(req.body, {

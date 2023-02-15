@@ -12,7 +12,7 @@ const getAllUsersCust = async () => {
 FROM customers
 LEFT JOIN address ON address.users_id = customers.users_id
 GROUP BY customers.users_id
-ORDER BY customers.created_at ASC;;
+ORDER BY customers.created_at ASC
 `;
 
   //   return await db`SELECT
@@ -67,76 +67,76 @@ const getUsersCustById = async (params) => {
   const { id } = params;
 
   return await db`SELECT
-    customers.*,
-    (
-      SELECT COALESCE(json_agg(row_to_json(sellers.*)), '[]'::json)
-      FROM sellers
-      WHERE sellers.email = customers.email
-    ) as sellers,
-    COALESCE(json_agg(row_to_json(address.*)), '[]'::json) as addresses
-  FROM customers
-  LEFT JOIN address ON address.users_id = customers.users_id
-  WHERE customers.users_id = ${id}
-  GROUP BY customers.users_id
-  ORDER BY customers.created_at ASC
-  `;
+  customers.*,
+  (
+    SELECT COALESCE(json_agg(row_to_json(sellers.*)), '[]'::json)
+    FROM sellers
+    WHERE sellers.email = customers.email
+  ) as sellers,
+  COALESCE(json_agg(address.* ORDER BY address.updated_at DESC), '[]'::json) as addresses
+FROM customers
+LEFT JOIN address ON address.users_id = customers.users_id
+WHERE customers.users_id = ${id}
+GROUP BY customers.users_id
+ORDER BY customers.created_at ASC
+`;
 };
 
 const getProfile = async (params) => {
   const { idValidator } = params;
 
   return await db`SELECT
-    customers.*,
-    (
-      SELECT COALESCE(json_agg(row_to_json(sellers.*)), '[]'::json)
-      FROM sellers
-      WHERE sellers.email = customers.email
-    ) as sellers,
-    COALESCE(json_agg(row_to_json(address.*)), '[]'::json) as addresses
-  FROM customers
-  LEFT JOIN address ON address.users_id = customers.users_id
-  WHERE customers.users_id = ${idValidator}
-  GROUP BY customers.users_id
-  ORDER BY customers.created_at ASC
-  `;
+  customers.*,
+  (
+    SELECT COALESCE(json_agg(row_to_json(sellers.*)), '[]'::json)
+    FROM sellers
+    WHERE sellers.email = customers.email
+  ) as sellers,
+  COALESCE(json_agg(address.* ORDER BY address.updated_at DESC), '[]'::json) as addresses
+FROM customers
+LEFT JOIN address ON address.users_id = customers.users_id
+WHERE customers.users_id = ${idValidator}
+GROUP BY customers.users_id
+ORDER BY customers.created_at ASC
+`;
 };
 
 const getAllUsersCustPaginationSort = async (params) => {
   const { limit, page, sort } = params;
 
   return await db`SELECT
-    customers.*,
-    (
-      SELECT COALESCE(json_agg(row_to_json(sellers.*)), '[]'::json)
-      FROM sellers
-      WHERE sellers.email = customers.email
-    ) as sellers,
-    COALESCE(json_agg(row_to_json(address.*)), '[]'::json) as addresses
-  FROM customers
-  LEFT JOIN address ON address.users_id = customers.users_id
-  GROUP BY customers.users_id
-  ${
-    sort ? db`ORDER BY created_at DESC` : db`ORDER BY created_at ASC`
-  } LIMIT ${limit} OFFSET ${limit * (page - 1)}
-  `;
+  customers.*,
+  (
+    SELECT COALESCE(json_agg(row_to_json(sellers.*)), '[]'::json)
+    FROM sellers
+    WHERE sellers.email = customers.email
+  ) as sellers,
+  COALESCE(json_agg(address.* ORDER BY address.updated_at DESC), '[]'::json) as addresses
+FROM customers
+LEFT JOIN address ON address.users_id = customers.users_id
+GROUP BY customers.users_id
+${
+  sort ? db`ORDER BY created_at DESC` : db`ORDER BY created_at ASC`
+} LIMIT ${limit} OFFSET ${limit * (page - 1)}
+`;
 };
 
 const getAllUsersCustPagination = async (params) => {
   const { limit, page } = params;
 
   return await db`SELECT
-    customers.*,
-    (
-      SELECT COALESCE(json_agg(row_to_json(sellers.*)), '[]'::json)
-      FROM sellers
-      WHERE sellers.email = customers.email
-    ) as sellers,
-    COALESCE(json_agg(row_to_json(address.*)), '[]'::json) as addresses
-  FROM customers
-  LEFT JOIN address ON address.users_id = customers.users_id
-  GROUP BY customers.users_id
-  ORDER BY created_at ASC LIMIT ${limit} OFFSET ${limit * (page - 1)}
-  `;
+  customers.*,
+  (
+    SELECT COALESCE(json_agg(row_to_json(sellers.*)), '[]'::json)
+    FROM sellers
+    WHERE sellers.email = customers.email
+  ) as sellers,
+  COALESCE(json_agg(address.* ORDER BY address.updated_at DESC), '[]'::json) as addresses
+FROM customers
+LEFT JOIN address ON address.users_id = customers.users_id
+GROUP BY customers.users_id
+ORDER BY created_at ASC LIMIT ${limit} OFFSET ${limit * (page - 1)}
+`;
 };
 
 const getAllUsersCustSort = async (params) => {
@@ -149,7 +149,7 @@ const getAllUsersCustSort = async (params) => {
     FROM sellers
     WHERE sellers.email = customers.email
   ) as sellers,
-  COALESCE(json_agg(row_to_json(address.*)), '[]'::json) as addresses
+  COALESCE(json_agg(address.* ORDER BY address.updated_at DESC), '[]'::json) as addresses
 FROM customers
 LEFT JOIN address ON address.users_id = customers.users_id
 GROUP BY customers.users_id
