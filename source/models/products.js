@@ -86,6 +86,12 @@ FROM sellers
  ${sort ? db`ORDER BY created_at DESC` : db`ORDER BY created_at ASC`}`;
 };
 
+const checkProductName = async (params) => {
+  const { product_name } = params;
+
+  return await db`SELECT product_name FROM products WHERE product_name ILIKE '%' || ${product_name} || '%'`;
+};
+
 const getEmail = async (params) => {
   const { email } = params;
 
@@ -157,55 +163,45 @@ const checkUsernameSellers = async (params) => {
   return await db`SELECT username FROM sellers WHERE username ILIKE '%' || ${username} || '%'`;
 };
 
-// const createUsersCust = async (params) => {
-//   const { email, username, password } = params;
+const createUsersCust = async (params) => {
+  const { email, username, password } = params;
 
-//   return await db`INSERT INTO customers ("email", "username", "password") VALUES
-//   (${email}, ${username}, ${password})`;
-// };
+  return await db`INSERT INTO customers ("email", "username", "password") VALUES
+  (${email}, ${username}, ${password})`;
+};
 
-// const createUsersSeller = async (params) => {
-//   const { email, username, password, phone_number, store_name } = params;
+const addProduct = async (params) => {
+  const {
+    users_id,
+    product_name,
+    price,
+    qty,
+    store_name,
+    color,
+    category,
+    size,
+    brand,
+    product_picture,
+    condition,
+    description,
+    slug,
+  } = params;
 
-//   return await db`INSERT INTO sellers ("email", "username", "password", "phone_number", "store_name") VALUES
-//     (${email}, ${username}, ${password}, ${phone_number}, ${store_name})`;
-// };
+  return await db`INSERT INTO products ("users_id", "product_name", "price", "qty", "store_name", "color", "category", "size", "brand", "product_picture", "condition", "description", "slug") VALUES (${users_id}, ${product_name}, ${price}, ${qty}, ${store_name}, ${color}, ${category}, ${size}, ${brand}, ${product_picture}, ${condition}, ${description}, ${slug})`;
+};
 
-const createUsersSellerAndCust = async (params) => {
+const createUsersSeller = async (params) => {
   const { email, username, password, phone_number, store_name } = params;
 
-  const result = await db`
-    INSERT INTO sellers ("email", "username", "password", "phone_number", "store_name")
-    VALUES (${email}, ${username}, ${password}, ${phone_number}, ${store_name})
-    RETURNING users_id
-  `;
-
-  const sellerId = result[0].users_id;
-
-  const customerParams = {
-    email,
-    username,
-    password,
-    seller_id: sellerId,
-  };
-
-  await createUsersParallel(customerParams);
+  return await db`INSERT INTO sellers ("email", "username", "password", "phone_number", "store_name") VALUES
+    (${email}, ${username}, ${password}, ${phone_number}, ${store_name})`;
 };
 
 const createUsersParallel = async (params) => {
-  const { email, username, password, seller_id } = params;
+  const { email, username, password } = params;
 
-  return await db`INSERT INTO customers ("email", "username", "password", "seller_id")
-    VALUES (${email}, ${username}, ${password}, ${seller_id})`;
-};
-
-const createUsersCust = async (params) => {
-  const { email, username, password, seller_id } = params;
-
-  return await db`
-    INSERT INTO customers ("email", "username", "password", "seller_id")
-    VALUES (${email}, ${username}, ${password}, ${seller_id})
-  `;
+  return await db`INSERT INTO customers ("email", "username", "password") VALUES
+    (${email}, ${username}, ${password})`;
 };
 
 const checkSellerId = async (params) => {
@@ -274,7 +270,7 @@ module.exports = {
   getUsernameSeller,
   getPhoneNumberSeller,
   getstoreName,
-  // createUsersSeller,
+  createUsersSeller,
   checkSellerId,
   createUsersParallel,
   updateUsersCustParallel,
@@ -283,5 +279,6 @@ module.exports = {
   checkEmail,
   checkUsernameSellers,
   checkUsername,
-  createUsersSellerAndCust,
+  checkProductName,
+  addProduct,
 };

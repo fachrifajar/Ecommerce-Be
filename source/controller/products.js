@@ -1,4 +1,4 @@
-const models = require("../models/seller");
+const models = require("../models/products");
 const { v4: uuidv4 } = require("uuid");
 const bcrypt = require("bcrypt");
 const saltRounds = 10;
@@ -117,113 +117,65 @@ const getSpecificUsersSeller = async (req, res) => {
   }
 };
 
-const createUsersSeller = async (req, res) => {
+const addProducts = async (req, res) => {
   try {
-    const { email, username, password, phone_number, store_name } = req.body;
-    const getEmail = await models.getEmail({ email });
-    const getUsername = await models.getUsername({ username });
-    const getPhoneNumber = await models.getPhoneNumber({ phone_number });
-    const getEmailSeller = await models.getEmailSeller({ email });
-    const getUsernameSeller = await models.getUsernameSeller({ username });
-    const getPhoneNumberSeller = await models.getPhoneNumberSeller({
-      phone_number,
-    });
-    const getstoreName = await models.getstoreName({
-      store_name,
-    });
+    const {
+      product_name,
+      price,
+      qty,
+      color,
+      category,
+      size,
+      brand,
+      product_picture,
+      condition,
+      description,
+    } = req.body;
 
-    const salt = await bcrypt.genSalt(saltRounds);
-    const hashedPassword = await bcrypt.hash(req.body.password, salt);
+    const idValidator = req.users_id;
 
-    if (phone_number) {
-      const getPhoneNumber = await models.getPhoneNumber({ phone_number });
-      const getPhoneSeller = await models.getPhoneSeller({ phone_number });
-
-      if ((getPhoneNumber || getPhoneSeller).length !== 0) {
-        throw {
-          code: 409,
-          message: "User with the provided phone number already exists",
-        };
-      }
-    }
-
-    if (email) {
-      const checkEmailSeller = await models.checkEmailSeller({ email });
-      const checkEmail = await models.checkEmail({ email });
+    if (product_name) {
+      const getProductName = await models.checkProductName({ product_name });
 
       if (
-        (checkEmailSeller[0]?.email.toLowerCase() ||
-          checkEmail[0]?.email.toLowerCase()) == email.toLowerCase()
+        getProductName[0]?.store_name.toLowerCase() == store_name.toLowerCase()
       ) {
         throw {
           code: 409,
-          message: "User with the related email already exists",
+          message: "Product with the provided name already exists",
         };
       }
     }
 
-    if (store_name) {
-      const getstoreName = await models.getstoreName({ store_name });
+    const split = product_name.split(" ").join("-");
 
-      if (
-        getstoreName[0]?.store_name.toLowerCase() == store_name.toLowerCase()
-      ) {
-        throw {
-          code: 409,
-          message: "Store with the name already exists",
-        };
+    let file = req.files.product_picture;
+
+    cloudinary.v2.uploader.upload(
+      file.tempFilePath,
+      { public_id: uuidv4(), folder: "ecommerce" },
+      async function (error, result) {
+        if (error) {
+          throw error;
+        }
+
+        await models.addProduct({
+          users_id: idValidator,
+          product_name,
+          price,
+          qty,
+          store_name,
+          color,
+          category,
+          size,
+          brand,
+          product_picture: result.public_id,
+          condition,
+          description,
+          slug: split,
+        });
       }
-    }
-
-    if (username) {
-      const checkUsernameSellers = await models.checkUsernameSellers({
-        username,
-      });
-      const checkUsername = await models.checkUsername({ username });
-      if (
-        (checkUsernameSellers[0]?.username.toLowerCase() ||
-          checkUsername[0]?.username.toLowerCase()) == username.toLowerCase()
-      ) {
-        throw {
-          code: 409,
-          message: "User with the related username already exists",
-        };
-      }
-    }
-
-    if (getEmail.length !== 0 || getEmailSeller.length !== 0) {
-      throw {
-        code: 409,
-        message: "User with the provided email already exists",
-      };
-    }
-    if (getUsername.length !== 0 || getUsernameSeller.length !== 0) {
-      throw {
-        code: 409,
-        message: "User with the provided username already exists",
-      };
-    }
-
-    if (getPhoneNumber.length !== 0 || getPhoneNumberSeller.length !== 0) {
-      throw {
-        code: 409,
-        message: "User with the provided phone number already exists",
-      };
-    }
-    if (getstoreName.length !== 0) {
-      throw {
-        code: 409,
-        message: "User with the provided store name already exists",
-      };
-    }
-
-    await models.createUsersSellerAndCust({
-      email,
-      username,
-      password: hashedPassword,
-      phone_number,
-      store_name,
-    });
+    );
 
     res.status(201).json({
       code: 201,
@@ -345,7 +297,7 @@ const updateUsersSellerPartial = async (req, res) => {
               email,
               phone_number,
               description,
-              profile_picture: result.public_id,
+              profile_picture,
             });
           }
         );
@@ -512,7 +464,7 @@ const updateUsersSellerAll = async (req, res) => {
                 email,
                 phone_number,
                 description,
-                profile_picture: result.public_id,
+                profile_picture,
               });
             }
           );
@@ -576,224 +528,10 @@ const updateUsersSellerAll = async (req, res) => {
   }
 };
 
-// const updateUsersCustAll = async (req, res) => {
-//   try {
-//     const {
-//       email,
-//       phone_number,
-//       username,
-//       password,
-//       profile_picture,
-//       gender,
-//       date_of_birth,
-//       address,
-//     } = req.body;
-
-//     const { usersid } = req.params;
-
-//     const roleValidator = req.users_id || null; // middleware for roleValidator
-//     const getRole = await models.getRoles({ roleValidator });
-//     const isAdmin = getRole[0]?.role;
-
-//     const getAllData = await models.getUsersCustById({ id: usersid });
-//     if (getAllData.length == 0) {
-//       throw { code: 400, message: "ID not identified" };
-//     }
-//     console.log(usersid);
-//     if (isAdmin == "admin" || usersid == roleValidator) {
-//       if (!req.files) {
-//         if (password == undefined) {
-//           await models.updateUsersCustPartial({
-//             email,
-//             defaultValue: getAllData[0],
-//             phone_number,
-//             username,
-//             password,
-//             profile_picture,
-//             id: usersid,
-//             gender,
-//             date_of_birth,
-//             address,
-//           });
-//         } else {
-//           bcrypt.hash(password, saltRounds, async function (err, hash) {
-//             try {
-//               if (err) {
-//                 throw "Failed Authenticate, please try again";
-//                 // throw new Error(400)
-//               }
-//               await models.updateUsersCustPartial({
-//                 email,
-//                 defaultValue: getAllData[0],
-//                 phone_number,
-//                 username,
-//                 password: hash,
-//                 profile_picture,
-//                 id: usersid,
-//                 gender,
-//                 date_of_birth,
-//                 address,
-//               });
-//             } catch (error) {
-//               res.status(error?.code ?? 500).json({
-//                 message: error.message ?? error,
-//               });
-//             }
-//           });
-//         }
-
-//         res.json({
-//           status: "true",
-//           message: "data updated",
-//           data: {
-//             id: usersid,
-//             ...req.body,
-//           },
-//         });
-//       } else {
-//         if (getAllData.length == 0) {
-//           throw { code: 400, message: "ID not identified" };
-//         } else {
-//           if (password == undefined) {
-//             let file = req.files.profile_picture;
-
-//             cloudinary.v2.uploader.destroy(
-//               getAllData[0].profile_picture,
-//               function (error, result) {
-//                 console.log(result, error);
-//               }
-//             );
-
-//             cloudinary.v2.uploader.upload(
-//               file.tempFilePath,
-//               { public_id: uuidv4(), folder: "ecommerce" },
-//               async function (error, result) {
-//                 if (error) {
-//                   throw error;
-//                 }
-
-//                 await models.updateUsersCustPartial({
-//                   email,
-//                   defaultValue: getAllData[0],
-//                   phone_number,
-//                   username,
-//                   password,
-//                   profile_picture: result.public_id,
-//                   id: usersid,
-//                   gender,
-//                   date_of_birth,
-//                   address,
-//                 });
-//               }
-//             );
-//           } else {
-//             let file = req.files.profile_picture;
-
-//             cloudinary.v2.uploader.destroy(
-//               getAllData[0].profile_picture,
-//               function (error, result) {
-//                 console.log(result, error);
-//               }
-//             );
-
-//             cloudinary.v2.uploader.upload(
-//               file.tempFilePath,
-//               { public_id: uuidv4(), folder: "ecommerce" },
-//               async function (error, result) {
-//                 if (error) {
-//                   throw "Upload failed";
-//                 }
-//                 bcrypt.hash(password, saltRounds, async function (err, hash) {
-//                   try {
-//                     if (err) {
-//                       throw "Failed Authenticate, please try again";
-//                     }
-
-//                     await models.updateUsersCustPartial({
-//                       email,
-//                       defaultValue: getAllData[0],
-//                       phone_number,
-//                       username,
-//                       password: hash,
-//                       profile_picture: result.public_id,
-//                       id: usersid,
-//                       gender,
-//                       date_of_birth,
-//                       address,
-//                     });
-//                   } catch (error) {
-//                     res.status(500).json({
-//                       message: error.message,
-//                     });
-//                   }
-//                 });
-//               }
-//             );
-//           }
-
-//           res.json({
-//             status: "true",
-//             message: "data updated",
-//             data: {
-//               id: usersid,
-//               ...req.body,
-//             },
-//             profile_picture: req.files.profile_picture.name,
-//           });
-//         }
-//       }
-//     } else {
-//       throw {
-//         code: 401,
-//         message:
-//           "Access not granted, only admin & valid user can access this section!",
-//       };
-//     }
-//   } catch (error) {
-//     if (error.code == "23505") {
-//       if (
-//         error.message ==
-//         'duplicate key value violates unique constraint "email_customer"'
-//       ) {
-//         res.status(422).json({
-//           message: "User with the provided email already exists",
-//         });
-//       }
-//       if (
-//         error.message ==
-//         'duplicate key value violates unique constraint "username_customer"'
-//       ) {
-//         res.status(422).json({
-//           message: "User with the provided username already exists",
-//         });
-//       }
-//       if (
-//         error.message ==
-//         'duplicate key value violates unique constraint "phone_number_customer"'
-//       ) {
-//         res.status(422).json({
-//           message: "User with the provided phone number already exists",
-//         });
-//       }
-//       const statusCode =
-//         error?.code && 100 <= error.code && error.code <= 599
-//           ? error.code
-//           : 500;
-//       res.status(statusCode).json({
-//         message: error.message ?? error,
-//       });
-//     } else {
-//       res.status(500).json({
-//         message: error.message,
-//       });
-//     }
-//   }
-// };
-
 module.exports = {
   getUsersSeller,
   getSpecificUsersSeller,
-  createUsersSeller,
+  addProducts,
   updateUsersSellerPartial,
   updateUsersSellerAll,
 };
