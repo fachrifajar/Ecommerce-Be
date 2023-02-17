@@ -157,20 +157,6 @@ const checkUsernameSellers = async (params) => {
   return await db`SELECT username FROM sellers WHERE username ILIKE '%' || ${username} || '%'`;
 };
 
-// const createUsersCust = async (params) => {
-//   const { email, username, password } = params;
-
-//   return await db`INSERT INTO customers ("email", "username", "password") VALUES
-//   (${email}, ${username}, ${password})`;
-// };
-
-// const createUsersSeller = async (params) => {
-//   const { email, username, password, phone_number, store_name } = params;
-
-//   return await db`INSERT INTO sellers ("email", "username", "password", "phone_number", "store_name") VALUES
-//     (${email}, ${username}, ${password}, ${phone_number}, ${store_name})`;
-// };
-
 const createUsersSellerAndCust = async (params) => {
   const { email, username, password, phone_number, store_name } = params;
 

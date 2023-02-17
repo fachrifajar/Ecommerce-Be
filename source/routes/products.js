@@ -11,17 +11,18 @@ router.post(
   "/add",
   authMiddleware.validateToken,
   authMiddleware.validateRole,
-  uploadMiddleware.fileExtLimiter([
-    ".png",
-    ".jpg",
-    ".jpeg",
-    ".PNG",
-    ".JPG",
-    ".JPEG",
-  ]),
+  uploadMiddleware.filesPayLoadExist,
   uploadMiddleware.fileSizeLimiter,
-  // middleware.createUsersSellerValidator,
+  uploadMiddleware.fileExtOnly,
+  middleware.addProductvalidator,
   usersController.addProducts
+);
+
+router.patch(
+  "/review/add/:productsid",
+  authMiddleware.validateToken,
+  authMiddleware.validateRole,
+  usersController.addProductsReview
 );
 
 // READ
@@ -36,7 +37,7 @@ router.get(
 router.get(
   "/:id?",
   redisMiddleware.getUsersCust_redis,
-  usersController.getUsersSeller
+  usersController.getProducts
 );
 
 // UPDATE
@@ -75,12 +76,12 @@ router.patch(
   usersController.updateUsersSellerAll
 );
 
-// // DELETE
-// router.delete(
-//   "/delete/:id",
-//   authMiddleware.validateToken,
-//   authMiddleware.validateRole,
-//   usersController.deleteUsers
-// );
+// DELETE
+router.delete(
+  "/delete/picture/:product_picture_id",
+  authMiddleware.validateToken,
+  authMiddleware.validateRole,
+  usersController.deleteProductPicture
+);
 
 module.exports = router;

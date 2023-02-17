@@ -71,7 +71,6 @@ const fileExtLimiter = (allowedExtArray) => {
         fileExtensions.push(path.extname(files[key].name));
       });
 
-      // Are the file extension allowed?
       const allowed = fileExtensions.every((ext) =>
         allowedExtArray.includes(ext)
       );
@@ -91,6 +90,54 @@ const fileExtLimiter = (allowedExtArray) => {
   };
 };
 
+const fileExtOnly = (req, res, next) => {
+  if (!req.files) {
+    next();
+  }
+
+  const allowed = ["png", "jpg", "jpeg", "webp"];
+  let files = req.files.product_picture;
+  files = Array.isArray(files) ? files : [files];
+  let getType = [];
+  let getExt = [];
+
+  for (let i = 0; i < files.length; i++) {
+    getType.push(files[i].mimetype.split("/")[0]);
+    getExt.push(files[i].mimetype.split("/")[1]);
+  }
+
+  let count = 0;
+  // let temp = [];
+
+  for (let i = 0; i < allowed.length; i++) {
+    for (let j = 0; j < getExt.length; j++) {
+      if (allowed[i] == getExt[j].toLowerCase()) {
+        count++;
+        // temp.push(getExt[j]);
+      }
+    }
+  }
+  // console.log(temp);
+  // console.log(count);
+  // console.log(getExt.length);
+
+  if (getExt.length > 5) {
+    const message = `Upload failed. Only 5 photos allowed.`;
+
+    return res.status(422).json({ status: "error", message });
+  }
+
+  if (count !== getExt.length) {
+    const message = `Upload failed. Only ${allowed
+      .toString()
+      .toUpperCase()} files allowed.`.replaceAll(",", ", ");
+
+    return res.status(422).json({ status: "error", message });
+  }
+
+  next();
+};
+
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
@@ -101,5 +148,6 @@ module.exports = {
   filesPayLoadExist,
   fileSizeLimiter,
   fileExtLimiter,
+  fileExtOnly,
   cloudinary,
 };

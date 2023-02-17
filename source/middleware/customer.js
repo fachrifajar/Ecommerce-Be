@@ -208,7 +208,7 @@ const updateUsersPartialValidator = (req, res, next) => {
     date_of_birth: date_of_birth == "" ? "required|regexDOB" : "regexDOB",
     gender: gender == "" ? "required|regexGender" : "regexGender",
     address: address == "" ? "required|minLength:10" : "minLength:10",
-    profile_picture: profile_picture == "" ? "required|url" : "url",
+    profile_picture: profile_picture == "" ? "required" : "minLength:1",
   });
 
   rules.check().then((matched) => {

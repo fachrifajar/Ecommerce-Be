@@ -92,7 +92,7 @@ const updateUsersPartialValidator = (req, res, next) => {
       phone_number == ""
         ? "required|integer|minLength:7|maxLength:15"
         : "integer|minLength:7|maxLength:15",
-    profile_picture: profile_picture == "" ? "required|url" : "url",
+    profile_picture: profile_picture == "" ? "required" : "minLength:1",
     store_name:
       store_name == ""
         ? "required|minLength:8|maxLength:30|regexStorename"

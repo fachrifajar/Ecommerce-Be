@@ -4,34 +4,42 @@ const {
   extend,
 } = require("node-input-validator");
 
-const createUsersSellerValidator = (req, res, next) => {
-  extend("namePassswordValidator", () => {
-    if (req.body.username !== req.body.password) {
+const addProductvalidator = (req, res, next) => {
+  extend("regexSize", () => {
+    if (/^(XS|S|M|L|XL)(,(?!.*,\1)(XS|S|M|L|XL)){0,4}$/i.test(req.body.size)) {
       return true;
+    } else {
+      return false;
+    }
+  });
+
+  extend("regexColor", () => {
+    const mandatoryWords = ["black", "white", "red", "gray", "cream", "blue"];
+    const regex = new RegExp(
+      `^(${mandatoryWords.join("|")})(,(${mandatoryWords.join("|")})){0,5}$`,
+      "i"
+    );
+    if (regex.test(req.body.color)) {
+      const colors = req.body.color.toLowerCase().split(",");
+      if (new Set(colors).size === colors.length) {
+        return true;
+      }
     }
     return false;
   });
 
-  extend("regexUsername", () => {
-    if (/^[a-zA-Z0-9\s+]+$/g.test(req.body.username)) {
+  extend("regexCondition", () => {
+    if (/^(new|used)$/i.test(req.body.condition)) {
       return true;
     } else {
       return false;
     }
   });
 
-  extend("regexStorename", () => {
-    if (/^[a-zA-Z]+[a-zA-Z0-9\s]*$/g.test(req.body.store_name)) {
-      return true;
-    } else {
-      return false;
-    }
-  });
-
-  extend("regexPass", () => {
+  extend("regexCategory", () => {
     if (
-      /^(?=.*\d)(?=.*[!@#$%^&*])(?=.*[a-z])(?=.*[A-Z]).{8,}$/.test(
-        req.body.password
+      /^(tshirt|shirt|shorts|outwear|pants|footwear|bag|headwear)$/i.test(
+        req.body.category
       )
     ) {
       return true;
@@ -41,19 +49,22 @@ const createUsersSellerValidator = (req, res, next) => {
   });
 
   addCustomMessages({
-    "username.namePassswordValidator": `Password can't contain username`,
-    "password.regexUsername": `Username can only contain Alphanumeric / Alphabetical Characters`,
-    "password.regexPass": `Passwords must have at least 8 characters and contain uppercase letters, lowercase letters, numbers, and symbols`,
-    "store_name.regexStorename": `Storename can only contain Alphabetical & Numbers`,
+    "size.regexSize": `Please enter a valid size using the format: XS,S,M,L,XL. Sizes cannot be duplicated and must be separated by commas with no spaces. Example: 'XS,S,M,L,XL'`,
+    "color.regexColor": `Invalid color input. Please enter one or more of the following colors: black, white, red, gray, cream, blue, separated by commas and cannot be duplicated.`,
+    "condition.regexCondition": `Please enter a valid contion. Example: 'used' / 'new'`,
+    "category.regexCategory": `Invalid color input. Please enter one or more of the following category: tshirt, shirt, shorts, outwear, pants, footwear, bag, headwear`,
   });
 
   const rules = new Validator(req.body, {
-    email: "required|email|minLength:3|maxLength:100",
-    username:
-      "required|minLength:5|maxLength:25|regexUsername|namePassswordValidator",
-    password: "required|regexPass|minLength:8|maxLength:20",
-    phone_number: "required|integer|minLength:10|maxLength:15",
-    store_name: "required|minLength:8|maxLength:30|regexStorename",
+    product_name: "required|alphaNumeric|minLength:3|maxLength:30",
+    price: "required|integer",
+    qty: "required|integer",
+    color: "required|regexColor",
+    category: "required|regexCategory",
+    size: "required|regexSize",
+    brand: "required|maxLength:20",
+    condition: "required|regexCondition",
+    description: "required|maxLength:100",
   });
 
   rules.check().then((matched) => {
@@ -92,7 +103,7 @@ const updateUsersPartialValidator = (req, res, next) => {
       phone_number == ""
         ? "required|integer|minLength:7|maxLength:15"
         : "integer|minLength:7|maxLength:15",
-    profile_picture: profile_picture == "" ? "required|url" : "url",
+    profile_picture: profile_picture == "" ? "required" : "minLength:1",
     store_name:
       store_name == ""
         ? "required|minLength:8|maxLength:30|regexStorename"
@@ -133,7 +144,7 @@ const deleteUsersValidator = (req, res, next) => {
 };
 
 module.exports = {
-  createUsersSellerValidator,
+  addProductvalidator,
   updateUsersPartialValidator,
   deleteUsersValidator,
 };

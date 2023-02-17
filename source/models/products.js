@@ -1,30 +1,58 @@
 const db = require("../config/database");
 
-const getAllUsersSeller = async () => {
-  return await db`SELECT
-  sellers.*, 
-  (
-    SELECT COALESCE(json_agg(row_to_json(customers.*)), '[]'::json) 
-    FROM customers 
-    WHERE customers.email = sellers.email
-  ) as customers
-FROM sellers
-ORDER BY sellers.created_at ASC`;
+const getAllProduct = async (params) => {
+  const { orderBy } = params;
+
+  let result;
+
+  if (!orderBy) {
+    result = await db`SELECT
+    products.*, 
+    (
+      SELECT COALESCE(json_agg(row_to_json(products_picture.*)), '[]'::json) 
+      FROM products_picture 
+      WHERE products.products_id = products_picture.products_id
+    ) as products_picture
+  FROM products
+  ORDER BY products.created_at ASC`;
+  } else if (orderBy == "popular") {
+    result = await db`SELECT
+    products.*, 
+    (
+      SELECT COALESCE(json_agg(row_to_json(products_picture.*)), '[]'::json) 
+      FROM products_picture 
+      WHERE products.products_id = products_picture.products_id
+    ) as products_picture
+  FROM products
+  ORDER BY products.avg_review ASC`;
+  } else if (orderBy == "sold") {
+    result = await db`SELECT
+    products.*, 
+    (
+      SELECT COALESCE(json_agg(row_to_json(products_picture.*)), '[]'::json) 
+      FROM products_picture 
+      WHERE products.products_id = products_picture.products_id
+    ) as products_picture
+  FROM products
+  ORDER BY products.item_sold_count ASC`;
+  }
+
+  return result;
 };
 
-const getUsersSellerById = async (params) => {
+const getAllProductById = async (params) => {
   const { id } = params;
 
   return await db`SELECT
-  sellers.*, 
+  products.*, 
   (
-    SELECT COALESCE(json_agg(row_to_json(customers.*)), '[]'::json) 
-    FROM customers 
-    WHERE customers.email = sellers.email
-  ) as customers
-FROM sellers
-WHERE users_id = ${id}
-ORDER BY sellers.created_at ASC`;
+    SELECT COALESCE(json_agg(row_to_json(products_picture.*)), '[]'::json) 
+    FROM products_picture 
+    WHERE products.products_id = products_picture.products_id
+  ) as products_picture
+FROM products
+WHERE products_id = ${id}
+ORDER BY products.created_at ASC`;
 };
 
 const getProfile = async (params) => {
@@ -42,48 +70,132 @@ WHERE users_id = ${sellerIdvalidator}
 ORDER BY sellers.created_at ASC`;
 };
 
-const getAllUsersSellerPaginationSort = async (params) => {
-  const { limit, page, sort } = params;
+// const getAllProductPaginationSort = async (params) => {
+//   const { limit, page, sort, orderBy } = params;
 
-  return await db`SELECT
-  sellers.*, 
+//   const validOrders = ["size", "color", "category", "brand"];
+//   const isValidOrder = validOrders.includes(orderBy);
+
+//   const orderColumn = isValidOrder ? orderBy : "created_at";
+//   const orderDirection = sort === "DESC" ? "DESC" : "ASC";
+//   console.log(orderColumn);
+//   console.log(orderDirection);
+//   console.log(limit);
+//   console.log(page);
+
+//   return await db`SELECT
+//   products.*,
+//   (
+//     SELECT COALESCE(json_agg(row_to_json(products_picture.*)), '[]'::json)
+//     FROM products_picture
+//     WHERE products.products_id = products_picture.products_id
+//   ) as products_picture
+// FROM products
+//  ${
+//    sort ? db`ORDER BY created_at DESC` : db`ORDER BY created_at ASC`
+//  } LIMIT ${limit} OFFSET ${limit * (page - 1)}`;
+
+//   return await db`
+//     SELECT
+//       products.*,
+//       (
+//         SELECT COALESCE(json_agg(row_to_json(products_picture.*)), '[]'::json)
+//         FROM products_picture
+//         WHERE products.products_id = products_picture.products_id
+//       ) as products_picture
+//     FROM products
+//     ORDER BY products.${orderColumn} ${orderDirection}
+//     LIMIT ${limit} OFFSET ${limit * (page - 1)}
+//   `;
+// };
+
+const getAllProductPaginationSort = async (params) => {
+  const { limit, page, sort, orderBy } = params;
+
+  let result;
+
+  if (!orderBy) {
+    result = await db`SELECT
+    products.*, 
+    (
+      SELECT COALESCE(json_agg(row_to_json(products_picture.*)), '[]'::json) 
+      FROM products_picture 
+      WHERE products.products_id = products_picture.products_id
+    ) as products_picture
+  FROM products
+  ${sort ? db`ORDER BY created_at DESC` : db`ORDER BY created_at ASC`}
+  LIMIT ${limit} OFFSET ${limit * (page - 1)}`;
+  }
+
+  if (orderBy == "popular") {
+    result = await db`SELECT
+  products.*, 
   (
-    SELECT COALESCE(json_agg(row_to_json(customers.*)), '[]'::json) 
-    FROM customers 
-    WHERE customers.email = sellers.email
-  ) as customers
-FROM sellers
- ${
-   sort ? db`ORDER BY created_at DESC` : db`ORDER BY created_at ASC`
- } LIMIT ${limit} OFFSET ${limit * (page - 1)}`;
+    SELECT COALESCE(json_agg(row_to_json(products_picture.*)), '[]'::json) 
+    FROM products_picture 
+    WHERE products.products_id = products_picture.products_id
+  ) as products_picture
+FROM products
+${sort ? db`ORDER BY avg_review DESC` : db`ORDER BY avg_review ASC`}
+LIMIT ${limit} OFFSET ${limit * (page - 1)}`;
+  } else if (orderBy == "sold") {
+    result = await db`SELECT
+    products.*, 
+    (
+      SELECT COALESCE(json_agg(row_to_json(products_picture.*)), '[]'::json) 
+      FROM products_picture 
+      WHERE products.products_id = products_picture.products_id
+    ) as products_picture
+  FROM products
+  ${sort ? db`ORDER BY item_sold_count DESC` : db`ORDER BY item_sold_count ASC`}
+  LIMIT ${limit} OFFSET ${limit * (page - 1)}`;
+  }
+
+  return result;
 };
 
-const getAllUsersSellerPagination = async (params) => {
-  const { limit, page } = params;
+const getAllProductSort = async (params) => {
+  const { sort, orderBy } = params;
 
-  return await db`SELECT
-  sellers.*, 
+  let result;
+
+  if (!orderBy) {
+    result = await db`SELECT
+    products.*, 
+    (
+      SELECT COALESCE(json_agg(row_to_json(products_picture.*)), '[]'::json) 
+      FROM products_picture 
+      WHERE products.products_id = products_picture.products_id
+    ) as products_picture
+  FROM products
+  ${sort ? db`ORDER BY created_at DESC` : db`ORDER BY created_at ASC`}`;
+  }
+
+  if (orderBy == "popular") {
+    result = await db`SELECT
+  products.*, 
   (
-    SELECT COALESCE(json_agg(row_to_json(customers.*)), '[]'::json) 
-    FROM customers 
-    WHERE customers.email = sellers.email
-  ) as customers
-FROM sellers
- ORDER BY created_at ASC LIMIT ${limit} OFFSET ${limit * (page - 1)}`;
-};
+    SELECT COALESCE(json_agg(row_to_json(products_picture.*)), '[]'::json) 
+    FROM products_picture 
+    WHERE products.products_id = products_picture.products_id
+  ) as products_picture
+FROM products
+${sort ? db`ORDER BY avg_review DESC` : db`ORDER BY avg_review ASC`}`;
+  } else if (orderBy == "sold") {
+    result = await db`SELECT
+    products.*, 
+    (
+      SELECT COALESCE(json_agg(row_to_json(products_picture.*)), '[]'::json) 
+      FROM products_picture 
+      WHERE products.products_id = products_picture.products_id
+    ) as products_picture
+  FROM products
+  ${
+    sort ? db`ORDER BY item_sold_count DESC` : db`ORDER BY item_sold_count ASC`
+  }`;
+  }
 
-const getAllUsersSellerSort = async (params) => {
-  const { sort } = params;
-
-  return await db`SELECT
-  sellers.*, 
-  (
-    SELECT COALESCE(json_agg(row_to_json(customers.*)), '[]'::json) 
-    FROM customers 
-    WHERE customers.email = sellers.email
-  ) as customers
-FROM sellers
- ${sort ? db`ORDER BY created_at DESC` : db`ORDER BY created_at ASC`}`;
+  return result;
 };
 
 const checkProductName = async (params) => {
@@ -170,6 +282,30 @@ const createUsersCust = async (params) => {
   (${email}, ${username}, ${password})`;
 };
 
+const addProductReview = async (params) => {
+  const { review, id } = params;
+
+  // Retrieve the current review array from the products table
+  const currentReview =
+    await db`SELECT review FROM products WHERE products_id = ${id}`;
+
+  // Concatenate the new review with the current review array
+  const newReview = currentReview[0].review.concat(JSON.parse(review));
+
+  // Update the products table with the new review array
+  await db`UPDATE products SET review = ${newReview}, 
+  updated_at = NOW() AT TIME ZONE 'Asia/Jakarta' 
+  WHERE products_id = ${id}`;
+
+  // Update the avg_review column in the products table with the new average review score
+  await db`UPDATE products SET avg_review = (
+    SELECT AVG(value) FROM (
+      SELECT UNNEST(review) AS value FROM products
+      WHERE products_id = ${id}
+    ) AS review_values
+  ) WHERE products_id = ${id}`;
+};
+
 const addProduct = async (params) => {
   const {
     users_id,
@@ -181,13 +317,21 @@ const addProduct = async (params) => {
     category,
     size,
     brand,
-    product_picture,
     condition,
     description,
     slug,
   } = params;
 
-  return await db`INSERT INTO products ("users_id", "product_name", "price", "qty", "store_name", "color", "category", "size", "brand", "product_picture", "condition", "description", "slug") VALUES (${users_id}, ${product_name}, ${price}, ${qty}, ${store_name}, ${color}, ${category}, ${size}, ${brand}, ${product_picture}, ${condition}, ${description}, ${slug})`;
+  const result =
+    await db`INSERT INTO products ("users_id", "product_name", "price", "qty", "store_name", "color", "category", "size", "brand", "condition", "description", "slug") VALUES (${users_id}, ${product_name}, ${price}, ${qty}, ${store_name}, ${color}, ${category}, ${size}, ${brand}, ${condition}, ${description}, ${slug}) RETURNING products_id`;
+
+  return result[0].products_id;
+};
+
+const addProductPicture = async (params) => {
+  const { product_picture, products_id, users_id } = params;
+
+  return await db`INSERT INTO products_picture ("product_picture", "products_id", "users_id") VALUES (${product_picture}, ${products_id}, ${users_id})`;
 };
 
 const createUsersSeller = async (params) => {
@@ -253,11 +397,10 @@ const getRoles = async (params) => {
 };
 
 module.exports = {
-  getAllUsersSeller,
-  getUsersSellerById,
-  getAllUsersSellerPaginationSort,
-  getAllUsersSellerPagination,
-  getAllUsersSellerSort,
+  getAllProduct,
+  getAllProductById,
+  getAllProductPaginationSort,
+  getAllProductSort,
   getEmail,
   getUsername,
   getPhoneNumber,
@@ -281,4 +424,6 @@ module.exports = {
   checkUsername,
   checkProductName,
   addProduct,
+  addProductPicture,
+  addProductReview,
 };
