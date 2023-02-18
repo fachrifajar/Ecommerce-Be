@@ -22,54 +22,139 @@ const getProducts = async (req, res) => {
     let getUsersData;
     let getAllData;
 
-    if (id) {
-      getUsersData = await models.getAllProductById({ id });
-      connectRedis.set("find_users", true, "ex", 10);
-      connectRedis.set("url", req.originalUrl, "ex", 10);
-      connectRedis.set("Id_users", id, "ex", 10);
-      connectRedis.set("getReqAccount", JSON.stringify(getUsersData), "ex", 10);
-      if (getUsersData.length > 0) {
-        res.json({
-          message: `Get product with products_id: ${id}`,
-          data: getUsersData,
+    if (colorFilter || sizeFilter || categoryFilter || brandFilter) {
+      if (!sort && !page && !limit) {
+        console.log("test atas TANPA FILTER SORT");
+        getUsersData = await models.getAllProductFilter({
+          colorFilter,
+          sizeFilter,
+          categoryFilter,
+          brandFilter,
         });
-      } else {
-        throw { code: 422, message: "Data not found" };
       }
-    }
-    if (!id && !page && !limit && !sort) {
-      getUsersData = totalDatas;
-      connectRedis.set("url", req.originalUrl, "ex", 10);
-      connectRedis.set("find_all_users", true, "ex", 10);
-      connectRedis.set("getReqAccount", JSON.stringify(getUsersData), "ex", 10);
-      res.json({
-        message: "Success get all data products",
-        total: getUsersData.length,
-        data: getUsersData,
-      });
-    }
-    if (page || limit || sort) {
-      if (page && limit) {
-        getAllData = await models.getAllProductPaginationSort({
-          limit,
-          page,
+      if (sort && !page && !limit) {
+        console.log("test atas sort");
+        getUsersData = await models.getAllProductFilterSort({
           sort,
-          orderBy,
+          colorFilter,
+          sizeFilter,
+          categoryFilter,
+          brandFilter,
         });
-      } else if (sort) {
-        getAllData = await models.getAllProductSort({ sort, orderBy });
+      }
+      if (page && limit) {
+        console.log("test atas pagination sort");
+        getAllData = await models.getAllProductFilterPaginationSort({
+          sort,
+          page,
+          limit,
+          colorFilter,
+          sizeFilter,
+          categoryFilter,
+          brandFilter,
+        });
+      }
+      if (!page && !limit) {
+        if (getUsersData.length) {
+          res.json({
+            message: `Get product with filter`,
+            data: getUsersData,
+          });
+          return;
+        } else {
+          throw { code: 422, message: "Data not found" };
+        }
+      }
+    } else {
+      console.log("bocor");
+      if (
+        id &&
+        (!colorFilter || !sizeFilter || !categoryFilter || !brandFilter)
+      ) {
+        console.log("test bawah 1");
+        getUsersData = await models.getAllProductByName({ id });
+        connectRedis.set("find_users", true, "ex", 10);
         connectRedis.set("url", req.originalUrl, "ex", 10);
-        connectRedis.set("isSorted", true, "ex", 10);
-        connectRedis.set("sortedData", JSON.stringify(getAllData), "ex", 10);
+        connectRedis.set("Id_users", id, "ex", 10);
+        connectRedis.set(
+          "getReqAccount",
+          JSON.stringify(getUsersData),
+          "ex",
+          10
+        );
+        if (getUsersData.length > 0) {
+          res.json({
+            message: `Get product with products_id: ${id}`,
+            data: getUsersData,
+          });
+          return;
+        } else {
+          throw { code: 422, message: "Data not found" };
+        }
+      }
+      if (
+        !id &&
+        !page &&
+        !limit &&
+        !sort &&
+        (!colorFilter || !sizeFilter || !categoryFilter || !brandFilter)
+      ) {
+        console.log("test bawah 2");
+        getUsersData = totalDatas;
+        connectRedis.set("url", req.originalUrl, "ex", 10);
+        connectRedis.set("find_all_users", true, "ex", 10);
+        connectRedis.set(
+          "getReqAccount",
+          JSON.stringify(getUsersData),
+          "ex",
+          10
+        );
         res.json({
           message: "Success get all data products",
-          total: getAllData.length,
-          data: getAllData,
+          total: getUsersData.length,
+          data: getUsersData,
         });
+      }
+      if (
+        (page || limit || sort) &&
+        (!colorFilter || !sizeFilter || !categoryFilter || !brandFilter)
+      ) {
+        console.log("test bawah 3");
+        if (page && limit) {
+          getAllData = await models.getAllProductPaginationSort({
+            limit,
+            page,
+            sort,
+            orderBy,
+          });
+        } else if (sort) {
+          // let sizeFilterConvert = sizeFilter.split(",");
+
+          getAllData = await models.getAllProductSort({
+            sort,
+            orderBy,
+          });
+          connectRedis.set("url", req.originalUrl, "ex", 10);
+          connectRedis.set("isSorted", true, "ex", 10);
+          connectRedis.set("sortedData", JSON.stringify(getAllData), "ex", 10);
+          res.json({
+            message: "Success get all data products",
+            total: getAllData.length,
+            data: getAllData,
+          });
+        }
       }
     }
 
-    if ((page && limit && sort) || (page && limit)) {
+    if (
+      (page && limit && sort) ||
+      (page && limit) ||
+      colorFilter ||
+      sizeFilter ||
+      categoryFilter ||
+      brandFilter
+    ) {
+      console.log("test bawah json");
       connectRedis.set("url", req.originalUrl, "ex", 10);
       connectRedis.set("page", page, "ex", 10);
       connectRedis.set("limit", limit, "ex", 10);
@@ -92,27 +177,6 @@ const getProducts = async (req, res) => {
   }
 };
 
-const getSpecificUsersSeller = async (req, res) => {
-  try {
-    const idValidator = req.users_id; // middleware for roleValidator
-    const sellerIdvalidator = req.seller_id;
-
-    console.log(sellerIdvalidator);
-
-    const profileData = await models.getProfile({ sellerIdvalidator });
-
-    res.json({
-      message: `Get User (Seller) With Id: ${sellerIdvalidator}`,
-      data: profileData,
-    });
-  } catch (error) {
-    res.status(400).json({
-      message: "Bad Request",
-      error: error,
-    });
-  }
-};
-
 const addProducts = async (req, res) => {
   try {
     const {
@@ -130,12 +194,13 @@ const addProducts = async (req, res) => {
 
     const idValidator = req.seller_id;
     console.log("idValidator", idValidator);
-    const getData = await models.getAllProduct();
+    const getData = await models.getProfile({ sellerIdvalidator: idValidator });
     const getStoreName = getData[0]?.store_name;
-
+    console.log(getStoreName);
+    console.log("test1");
     if (product_name) {
       const getProductName = await models.checkProductName({ product_name });
-
+      console.log("test2");
       if (
         getProductName[0]?.product_name.toLowerCase() ==
         product_name.toLowerCase()
@@ -146,7 +211,7 @@ const addProducts = async (req, res) => {
         };
       }
     }
-
+    console.log("test3");
     const split = product_name.split(" ").join("-");
 
     let files = req.files.product_picture;
@@ -240,129 +305,119 @@ const addProductsReview = async (req, res) => {
   }
 };
 
-const updateUsersSellerPartial = async (req, res) => {
+const updateProducts = async (req, res) => {
   try {
-    const { store_name, email, phone_number, description, profile_picture } =
-      req.body;
+    const {
+      product_name,
+      price,
+      qty,
+      color,
+      category,
+      size,
+      brand,
+      product_picture,
+      condition,
+      description,
+    } = req.body;
 
+    const { usersid } = req.params;
     const sellerIdvalidator = req.seller_id;
-    const roleValidator = req.users_id || null; // middleware for roleValidator
     const getRole = await models.getRoles({ sellerIdvalidator });
     const isAdmin = getRole[0]?.role;
 
-    const getAllData = await models.getUsersSellerById({
-      id: sellerIdvalidator,
-    });
+    const getAllData = await models.getProductId({ id: usersid });
     if (getAllData.length == 0) {
-      throw { code: 400, message: "ID not identified" };
+      throw { code: 400, message: "Product_id not identified" };
     }
+    // console.log(getAllData[0]?.users_id);
+    // console.log(sellerIdvalidator);
 
-    if (phone_number) {
-      const getPhoneNumber = await models.getPhoneNumber({ phone_number });
-      const getPhoneSeller = await models.getPhoneSeller({ phone_number });
-      if ((getPhoneNumber || getPhoneSeller).length !== 0) {
+    if (product_name) {
+      const getProductName = await models.getProductName({ product_name });
+
+      if (getProductName.length !== 0) {
         throw {
           code: 401,
-          message: "User with the provided phone number already exists",
+          message: "product name already exists",
         };
-      } else {
-        await models.updateUsersCustParallel({
-          phone_number,
-          id: sellerIdvalidator,
+      }
+    }
+
+    if (isAdmin == "admin" || sellerIdvalidator == getAllData[0]?.users_id) {
+      if (!req.files) {
+        await models.updateProducts({
+          defaultValue: getAllData[0],
+          id: usersid,
+          product_name,
+          price,
+          qty,
+          color,
+          category,
+          size,
+          brand,
+          condition,
+          description,
         });
-      }
-    }
-
-    if (email) {
-      const checkEmailSeller = await models.checkEmailSeller({ email });
-      const checkEmail = await models.checkEmail({ email });
-
-      if (
-        (checkEmailSeller[0]?.email.toLowerCase() ||
-          checkEmail[0]?.email.toLowerCase()) == email.toLowerCase()
-      ) {
-        throw {
-          code: 401,
-          message: "User with the related email already exists",
-        };
-      }
-    }
-
-    if (store_name) {
-      const getstoreName = await models.getstoreName({ store_name });
-
-      if (
-        getstoreName[0]?.store_name.toLowerCase() == store_name.toLowerCase()
-      ) {
-        throw {
-          code: 401,
-          message: "Store with the name already exists",
-        };
-      }
-    }
-
-    if (!req.files) {
-      await models.updateUsersSellerPartial({
-        defaultValue: getAllData[0],
-        id: sellerIdvalidator,
-        store_name,
-        email,
-        phone_number,
-        description,
-        profile_picture,
-      });
-
-      res.json({
-        status: "true",
-        message: "data updated",
-        data: {
-          id: sellerIdvalidator,
-          ...req.body,
-        },
-      });
-    } else {
-      if (getAllData.length == 0) {
-        throw { code: 400, message: "ID not identified" };
-      } else {
-        let file = req.files.profile_picture;
-
-        cloudinary.v2.uploader.destroy(
-          getAllData[0].profile_picture,
-          function (error, result) {
-            console.log(result, error);
-          }
-        );
-
-        cloudinary.v2.uploader.upload(
-          file.tempFilePath,
-          { public_id: uuidv4(), folder: "ecommerce" },
-          async function (error, result) {
-            if (error) {
-              throw error;
-            }
-
-            await models.updateUsersSellerPartial({
-              defaultValue: getAllData[0],
-              id: sellerIdvalidator,
-              store_name,
-              email,
-              phone_number,
-              description,
-              profile_picture,
-            });
-          }
-        );
 
         res.json({
           status: "true",
           message: "data updated",
           data: {
-            id: sellerIdvalidator,
+            id: usersid,
             ...req.body,
           },
-          profile_picture: req.files.profile_picture.name,
         });
       }
+      // else {
+      //   if (getAllData.length == 0) {
+      //     throw { code: 400, message: "ID not identified" };
+      //   } else {
+      //     let file = req.files.profile_picture;
+
+      //     cloudinary.v2.uploader.destroy(
+      //       getAllData[0].profile_picture,
+      //       function (error, result) {
+      //         console.log(result, error);
+      //       }
+      //     );
+
+      //     cloudinary.v2.uploader.upload(
+      //       file.tempFilePath,
+      //       { public_id: uuidv4(), folder: "ecommerce" },
+      //       async function (error, result) {
+      //         if (error) {
+      //           throw error;
+      //         }
+
+      //         await models.updateUsersSellerPartial({
+      //           defaultValue: getAllData[0],
+      //           id: sellerIdvalidator,
+      //           store_name,
+      //           email,
+      //           phone_number,
+      //           description,
+      //           profile_picture,
+      //         });
+      //       }
+      //     );
+
+      //     res.json({
+      //       status: "true",
+      //       message: "data updated",
+      //       data: {
+      //         id: sellerIdvalidator,
+      //         ...req.body,
+      //       },
+      //       profile_picture: req.files.profile_picture.name,
+      //     });
+      //   }
+      // }
+    } else {
+      throw {
+        code: 401,
+        message:
+          "Access not granted, only admin & valid user can access this section!",
+      };
     }
   } catch (error) {
     if (error.code == "23505") {
@@ -405,132 +460,58 @@ const updateUsersSellerPartial = async (req, res) => {
   }
 };
 
-const updateUsersSellerAll = async (req, res) => {
+const updatePhotoProducts = async (req, res) => {
   try {
-    const { store_name, email, phone_number, description, profile_picture } =
-      req.body;
+    const { product_picture } = req.body;
 
     const { usersid } = req.params;
     const sellerIdvalidator = req.seller_id;
-    const roleValidator = req.users_id || null; // middleware for roleValidator
     const getRole = await models.getRoles({ sellerIdvalidator });
     const isAdmin = getRole[0]?.role;
 
-    const getAllData = await models.getUsersSellerById({ id: usersid });
+    const getAllData = await models.getProductPictureId({ id: usersid });
     if (getAllData.length == 0) {
-      throw { code: 400, message: "ID not identified" };
-    }
-    console.log(usersid);
-    console.log(sellerIdvalidator);
-
-    if (phone_number) {
-      const getPhoneNumber = await models.getPhoneNumber({ phone_number });
-      const getPhoneSeller = await models.getPhoneSeller({ phone_number });
-      if ((getPhoneNumber || getPhoneSeller).length !== 0) {
-        throw {
-          code: 401,
-          message: "User with the provided phone number already exists",
-        };
-      } else {
-        await models.updateUsersCustParallel({
-          phone_number,
-          id: sellerIdvalidator,
-        });
-      }
+      throw { code: 400, message: "products_picture_id not identified" };
     }
 
-    if (email) {
-      const checkEmailSeller = await models.checkEmailSeller({ email });
-      const checkEmail = await models.checkEmail({ email });
+    if (isAdmin == "admin" || sellerIdvalidator == getAllData[0]?.users_id) {
+      let file = req.files.product_picture;
+      let getPhoto = getAllData[0].product_picture;
+      let getPhotoConvert = getPhoto.split("ecommerce/");
+      console.log(getPhotoConvert);
+      cloudinary.v2.uploader.destroy(
+        getPhotoConvert[1],
+        { folder: "ecommerce" },
+        function (error, result) {
+          console.log(result, error);
+        }
+      );
 
-      if (
-        (checkEmailSeller[0]?.email.toLowerCase() ||
-          checkEmail[0]?.email.toLowerCase()) == email.toLowerCase()
-      ) {
-        throw {
-          code: 401,
-          message: "User with the related email already exists",
-        };
-      }
-    }
+      cloudinary.v2.uploader.upload(
+        file.tempFilePath,
+        { public_id: uuidv4(), folder: "ecommerce" },
+        async function (error, result) {
+          if (error) {
+            throw error;
+          }
 
-    if (store_name) {
-      const getstoreName = await models.getstoreName({ store_name });
-
-      if (
-        getstoreName[0]?.store_name.toLowerCase() == store_name.toLowerCase()
-      ) {
-        throw {
-          code: 401,
-          message: "Store with the name already exists",
-        };
-      }
-    }
-
-    if (isAdmin == "admin" || usersid == sellerIdvalidator) {
-      if (!req.files) {
-        await models.updateUsersSellerPartial({
-          defaultValue: getAllData[0],
-          id: sellerIdvalidator,
-          store_name,
-          email,
-          phone_number,
-          description,
-          profile_picture,
-        });
-
-        res.json({
-          status: "true",
-          message: "data updated",
-          data: {
-            id: sellerIdvalidator,
-            ...req.body,
-          },
-        });
-      } else {
-        if (getAllData.length == 0) {
-          throw { code: 400, message: "ID not identified" };
-        } else {
-          let file = req.files.profile_picture;
-
-          cloudinary.v2.uploader.destroy(
-            getAllData[0].profile_picture,
-            function (error, result) {
-              console.log(result, error);
-            }
-          );
-
-          cloudinary.v2.uploader.upload(
-            file.tempFilePath,
-            { public_id: uuidv4(), folder: "ecommerce" },
-            async function (error, result) {
-              if (error) {
-                throw error;
-              }
-
-              await models.updateUsersSellerPartial({
-                defaultValue: getAllData[0],
-                id: sellerIdvalidator,
-                store_name,
-                email,
-                phone_number,
-                description,
-                profile_picture,
-              });
-            }
-          );
-
-          res.json({
-            status: "true",
-            message: "data updated",
-            data: {
-              id: sellerIdvalidator,
-              ...req.body,
-            },
-            profile_picture: req.files.profile_picture.name,
+          await models.updateProductPicture({
+            defaultValue: getAllData[0],
+            id: usersid,
+            product_picture,
           });
         }
-      }
+      );
+
+      res.json({
+        status: "true",
+        message: "data updated",
+        data: {
+          id: usersid,
+          ...req.body,
+        },
+        product_picture: req.files.product_picture.name,
+      });
     } else {
       throw {
         code: 401,
@@ -623,10 +604,9 @@ const deleteProductPicture = async (req, res) => {
 
 module.exports = {
   getProducts,
-  getSpecificUsersSeller,
   addProducts,
-  updateUsersSellerPartial,
-  updateUsersSellerAll,
+  updatePhotoProducts,
+  updateProducts,
   addProductsReview,
   deleteProductPicture,
 };

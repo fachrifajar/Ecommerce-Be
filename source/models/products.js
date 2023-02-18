@@ -1,7 +1,784 @@
 const db = require("../config/database");
 
+const getAllProductFilter = async (params) => {
+  const { orderBy, colorFilter, sizeFilter, categoryFilter, brandFilter } =
+    params;
+  let result;
+
+  if (sizeFilter && !colorFilter && !categoryFilter && !brandFilter) {
+    const sizes = sizeFilter.split(",");
+    console.log("masuk");
+    result = await db`SELECT
+        products.*, 
+        (
+          SELECT COALESCE(json_agg(row_to_json(products_picture.*)), '[]'::json) 
+          FROM products_picture 
+          WHERE products.products_id = products_picture.products_id
+        ) as products_picture
+      FROM products
+      WHERE size @> ${sizes} 
+      ORDER BY size ASC, created_at ASC`;
+  } else if (!sizeFilter && colorFilter && !categoryFilter && !brandFilter) {
+    const colors = colorFilter.split(",");
+
+    result = await db`SELECT
+        products.*, 
+        (
+          SELECT COALESCE(json_agg(row_to_json(products_picture.*)), '[]'::json) 
+          FROM products_picture 
+          WHERE products.products_id = products_picture.products_id
+        ) as products_picture
+      FROM products
+      WHERE color @> ${colors}
+      ORDER BY color ASC, created_at ASC`;
+  } else if (!sizeFilter && !colorFilter && categoryFilter && !brandFilter) {
+    result = await db`SELECT
+        products.*, 
+        (
+          SELECT COALESCE(json_agg(row_to_json(products_picture.*)), '[]'::json) 
+          FROM products_picture 
+          WHERE products.products_id = products_picture.products_id
+        ) as products_picture
+      FROM products
+      WHERE category = ${categoryFilter}
+      ORDER BY category ASC, created_at ASC`;
+  } else if (!sizeFilter && !colorFilter && !categoryFilter && brandFilter) {
+    result = await db`SELECT
+        products.*, 
+        (
+          SELECT COALESCE(json_agg(row_to_json(products_picture.*)), '[]'::json) 
+          FROM products_picture 
+          WHERE products.products_id = products_picture.products_id
+        ) as products_picture
+      FROM products
+      WHERE brand = ${brandFilter}
+      ORDER BY brand ASC, created_at ASC`;
+  }
+  ////////////////////////@
+  ////////////////////////@
+  else if (sizeFilter && colorFilter && !categoryFilter && !brandFilter) {
+    const sizes = sizeFilter.split(",");
+    const colors = colorFilter.split(",");
+
+    result = await db`SELECT
+        products.*, 
+        (
+          SELECT COALESCE(json_agg(row_to_json(products_picture.*)), '[]'::json) 
+          FROM products_picture 
+          WHERE products.products_id = products_picture.products_id
+        ) as products_picture
+      FROM products
+      WHERE size @> ${sizes} AND color @> ${colors}
+      ORDER BY size ASC, color ASC, created_at ASC`;
+  } else if (!sizeFilter && !colorFilter && categoryFilter && brandFilter) {
+    result = await db`SELECT
+        products.*, 
+        (
+          SELECT COALESCE(json_agg(row_to_json(products_picture.*)), '[]'::json) 
+          FROM products_picture 
+          WHERE products.products_id = products_picture.products_id
+        ) as products_picture
+      FROM products
+      WHERE category = ${categoryFilter} AND brand = ${brandFilter}
+      ORDER BY category ASC, brand ASC, created_at ASC`;
+  } else if (!sizeFilter && colorFilter && !categoryFilter && brandFilter) {
+    const colors = colorFilter.split(",");
+    result = await db`SELECT
+        products.*, 
+        (
+          SELECT COALESCE(json_agg(row_to_json(products_picture.*)), '[]'::json) 
+          FROM products_picture 
+          WHERE products.products_id = products_picture.products_id
+        ) as products_picture
+      FROM products
+      WHERE color @> ${colors} AND brand = ${brandFilter}
+      ORDER BY color ASC, brand ASC, created_at ASC`;
+  } else if (sizeFilter && !colorFilter && categoryFilter && !brandFilter) {
+    const sizes = sizeFilter.split(",");
+
+    result = await db`SELECT
+        products.*, 
+        (
+          SELECT COALESCE(json_agg(row_to_json(products_picture.*)), '[]'::json) 
+          FROM products_picture 
+          WHERE products.products_id = products_picture.products_id
+        ) as products_picture
+      FROM products
+      WHERE size @> ${sizes} AND category = ${categoryFilter}
+      ORDER BY size ASC, category ASC, created_at ASC`;
+  } else if (!sizeFilter && colorFilter && categoryFilter && !brandFilter) {
+    const colors = colorFilter.split(",");
+
+    result = await db`SELECT
+        products.*, 
+        (
+          SELECT COALESCE(json_agg(row_to_json(products_picture.*)), '[]'::json) 
+          FROM products_picture 
+          WHERE products.products_id = products_picture.products_id
+        ) as products_picture
+      FROM products
+      WHERE color @> ${colors} AND category = ${categoryFilter}
+      ORDER BY color ASC, category ASC, created_at ASC`;
+  } else if (sizeFilter && !colorFilter && !categoryFilter && brandFilter) {
+    const sizes = sizeFilter.split(",");
+
+    result = await db`SELECT
+        products.*, 
+        (
+          SELECT COALESCE(json_agg(row_to_json(products_picture.*)), '[]'::json) 
+          FROM products_picture 
+          WHERE products.products_id = products_picture.products_id
+        ) as products_picture
+      FROM products
+      WHERE size @> ${sizes} AND brand = ${brandFilter}
+      ORDER BY size ASC, brand ASC, created_at ASC`;
+  }
+
+  ////////////////////////@
+  ////////////////////////@
+  else if (sizeFilter && colorFilter && categoryFilter && brandFilter) {
+    const sizes = sizeFilter.split(",");
+    const colors = colorFilter.split(",");
+
+    result = await db`SELECT
+        products.*, 
+        (
+          SELECT COALESCE(json_agg(row_to_json(products_picture.*)), '[]'::json) 
+          FROM products_picture 
+          WHERE products.products_id = products_picture.products_id
+        ) as products_picture
+      FROM products
+      WHERE size @> ${sizes} AND color @> ${colors} AND category = ${categoryFilter} AND brand = ${brandFilter}
+      ORDER BY size ASC, color ASC, category ASC, brand ASC, created_at ASC`;
+  } else if (sizeFilter && colorFilter && categoryFilter && !brandFilter) {
+    const sizes = sizeFilter.split(",");
+    const colors = colorFilter.split(",");
+
+    result = await db`SELECT
+        products.*, 
+        (
+          SELECT COALESCE(json_agg(row_to_json(products_picture.*)), '[]'::json) 
+          FROM products_picture 
+          WHERE products.products_id = products_picture.products_id
+        ) as products_picture
+      FROM products
+      WHERE size @> ${sizes} AND color @> ${colors} AND category = ${categoryFilter}
+      ORDER BY size ASC, color ASC, category ASC, created_at ASC`;
+  } else if (!sizeFilter && colorFilter && categoryFilter && brandFilter) {
+    const colors = colorFilter.split(",");
+
+    result = await db`SELECT
+        products.*, 
+        (
+          SELECT COALESCE(json_agg(row_to_json(products_picture.*)), '[]'::json) 
+          FROM products_picture 
+          WHERE products.products_id = products_picture.products_id
+        ) as products_picture
+      FROM products
+      WHERE color @> ${colors} AND category = ${categoryFilter} AND brand = ${brandFilter}
+      ORDER BY color ASC, category ASC, brand ASC, created_at ASC`;
+  } else if (sizeFilter && !colorFilter && categoryFilter && brandFilter) {
+    const sizes = sizeFilter.split(",");
+
+    result = await db`SELECT
+        products.*, 
+        (
+          SELECT COALESCE(json_agg(row_to_json(products_picture.*)), '[]'::json) 
+          FROM products_picture 
+          WHERE products.products_id = products_picture.products_id
+        ) as products_picture
+      FROM products
+      WHERE size @> ${sizes} AND category = ${categoryFilter} AND brand = ${brandFilter}
+      ORDER BY size ASC, category ASC, brand ASC, created_at ASC`;
+  } else if (sizeFilter && colorFilter && !categoryFilter && brandFilter) {
+    const sizes = sizeFilter.split(",");
+    const colors = colorFilter.split(",");
+
+    result = await db`SELECT
+        products.*, 
+        (
+          SELECT COALESCE(json_agg(row_to_json(products_picture.*)), '[]'::json) 
+          FROM products_picture 
+          WHERE products.products_id = products_picture.products_id
+        ) as products_picture
+      FROM products
+      WHERE size @> ${sizes} AND color @> ${colors} AND brand = ${brandFilter}
+      ORDER BY size ASC, color ASC, brand ASC, created_at ASC`;
+  }
+
+  return result;
+};
+
+const getAllProductFilterSort = async (params) => {
+  const {
+    sort,
+    orderBy,
+    colorFilter,
+    sizeFilter,
+    categoryFilter,
+    brandFilter,
+  } = params;
+  let result;
+
+  if (sizeFilter && !colorFilter && !categoryFilter && !brandFilter) {
+    const sizes = sizeFilter.split(",");
+
+    result = await db`SELECT
+        products.*, 
+        (
+          SELECT COALESCE(json_agg(row_to_json(products_picture.*)), '[]'::json) 
+          FROM products_picture 
+          WHERE products.products_id = products_picture.products_id
+        ) as products_picture
+      FROM products
+      WHERE size @> ${sizes} 
+      ${
+        sort
+          ? db`ORDER BY size DESC, created_at DESC`
+          : db`ORDER BY size ASC, created_at ASC`
+      }`;
+  } else if (!sizeFilter && colorFilter && !categoryFilter && !brandFilter) {
+    const colors = colorFilter.split(",");
+
+    result = await db`SELECT
+        products.*, 
+        (
+          SELECT COALESCE(json_agg(row_to_json(products_picture.*)), '[]'::json) 
+          FROM products_picture 
+          WHERE products.products_id = products_picture.products_id
+        ) as products_picture
+      FROM products
+      WHERE color @> ${colors}
+      ${
+        sort
+          ? db`ORDER BY color DESC, created_at DESC`
+          : db`ORDER BY color ASC, created_at ASC`
+      }`;
+  } else if (!sizeFilter && !colorFilter && categoryFilter && !brandFilter) {
+    result = await db`SELECT
+        products.*, 
+        (
+          SELECT COALESCE(json_agg(row_to_json(products_picture.*)), '[]'::json) 
+          FROM products_picture 
+          WHERE products.products_id = products_picture.products_id
+        ) as products_picture
+      FROM products
+      WHERE category = ${categoryFilter}
+      ${
+        sort
+          ? db`ORDER BY category DESC, created_at DESC`
+          : db`ORDER BY category ASC, created_at ASC`
+      }`;
+  } else if (!sizeFilter && !colorFilter && !categoryFilter && brandFilter) {
+    result = await db`SELECT
+        products.*, 
+        (
+          SELECT COALESCE(json_agg(row_to_json(products_picture.*)), '[]'::json) 
+          FROM products_picture 
+          WHERE products.products_id = products_picture.products_id
+        ) as products_picture
+      FROM products
+      WHERE brand = ${brandFilter}
+      ${
+        sort
+          ? db`ORDER BY brand DESC, created_at DESC`
+          : db`ORDER BY brand ASC, created_at ASC`
+      }`;
+  }
+  ////////////////////////@
+  ////////////////////////@
+  else if (sizeFilter && colorFilter && !categoryFilter && !brandFilter) {
+    const sizes = sizeFilter.split(",");
+    const colors = colorFilter.split(",");
+
+    result = await db`SELECT
+        products.*, 
+        (
+          SELECT COALESCE(json_agg(row_to_json(products_picture.*)), '[]'::json) 
+          FROM products_picture 
+          WHERE products.products_id = products_picture.products_id
+        ) as products_picture
+      FROM products
+      WHERE size @> ${sizes} AND color @> ${colors}
+      ${
+        sort
+          ? db`ORDER BY size DESC, color DESC, created_at DESC`
+          : db`ORDER BY size ASC, color ASC, created_at ASC`
+      }`;
+  } else if (!sizeFilter && !colorFilter && categoryFilter && brandFilter) {
+    result = await db`SELECT
+        products.*, 
+        (
+          SELECT COALESCE(json_agg(row_to_json(products_picture.*)), '[]'::json) 
+          FROM products_picture 
+          WHERE products.products_id = products_picture.products_id
+        ) as products_picture
+      FROM products
+      WHERE category = ${categoryFilter} AND brand = ${brandFilter}
+      ${
+        sort
+          ? db`ORDER BY category DESC, brand DESC, created_at DESC`
+          : db`ORDER BY category ASC, brand ASC, created_at ASC`
+      }`;
+  } else if (!sizeFilter && colorFilter && !categoryFilter && brandFilter) {
+    const colors = colorFilter.split(",");
+    result = await db`SELECT
+        products.*, 
+        (
+          SELECT COALESCE(json_agg(row_to_json(products_picture.*)), '[]'::json) 
+          FROM products_picture 
+          WHERE products.products_id = products_picture.products_id
+        ) as products_picture
+      FROM products
+      WHERE color @> ${colors} AND brand = ${brandFilter}
+      ${
+        sort
+          ? db`ORDER BY color DESC, brand DESC, created_at DESC`
+          : db`ORDER BY color ASC, brand ASC, created_at ASC`
+      }`;
+  } else if (sizeFilter && !colorFilter && categoryFilter && !brandFilter) {
+    const sizes = sizeFilter.split(",");
+
+    result = await db`SELECT
+        products.*, 
+        (
+          SELECT COALESCE(json_agg(row_to_json(products_picture.*)), '[]'::json) 
+          FROM products_picture 
+          WHERE products.products_id = products_picture.products_id
+        ) as products_picture
+      FROM products
+      WHERE size @> ${sizes} AND category = ${categoryFilter}
+      ${
+        sort
+          ? db`ORDER BY size DESC, category DESC, created_at DESC`
+          : db`ORDER BY size ASC, category ASC, created_at ASC`
+      }`;
+  } else if (!sizeFilter && colorFilter && categoryFilter && !brandFilter) {
+    const colors = colorFilter.split(",");
+
+    result = await db`SELECT
+        products.*, 
+        (
+          SELECT COALESCE(json_agg(row_to_json(products_picture.*)), '[]'::json) 
+          FROM products_picture 
+          WHERE products.products_id = products_picture.products_id
+        ) as products_picture
+      FROM products
+      WHERE color @> ${colors} AND category = ${categoryFilter}
+      ${
+        sort
+          ? db`ORDER BY color DESC, category DESC, created_at DESC`
+          : db`ORDER BY color ASC, category ASC, created_at ASC`
+      }`;
+  } else if (sizeFilter && !colorFilter && !categoryFilter && brandFilter) {
+    const sizes = sizeFilter.split(",");
+
+    result = await db`SELECT
+        products.*, 
+        (
+          SELECT COALESCE(json_agg(row_to_json(products_picture.*)), '[]'::json) 
+          FROM products_picture 
+          WHERE products.products_id = products_picture.products_id
+        ) as products_picture
+      FROM products
+      WHERE size @> ${sizes} AND brand = ${brandFilter}
+      ${
+        sort
+          ? db`ORDER BY size DESC, brand DESC, created_at DESC`
+          : db`ORDER BY size ASC, brand ASC, created_at ASC`
+      }`;
+  }
+
+  ////////////////////////@
+  ////////////////////////@
+  else if (sizeFilter && colorFilter && categoryFilter && brandFilter) {
+    const sizes = sizeFilter.split(",");
+    const colors = colorFilter.split(",");
+
+    result = await db`SELECT
+        products.*, 
+        (
+          SELECT COALESCE(json_agg(row_to_json(products_picture.*)), '[]'::json) 
+          FROM products_picture 
+          WHERE products.products_id = products_picture.products_id
+        ) as products_picture
+      FROM products
+      WHERE size @> ${sizes} AND color @> ${colors} AND category = ${categoryFilter} AND brand = ${brandFilter}
+      ${
+        sort
+          ? db`ORDER BY size DESC, color DESC, category DESC, brand DESC, created_at DESC`
+          : db`ORDER BY size ASC, color ASC, category ASC, brand ASC, created_at ASC`
+      }`;
+  } else if (sizeFilter && colorFilter && categoryFilter && !brandFilter) {
+    const sizes = sizeFilter.split(",");
+    const colors = colorFilter.split(",");
+
+    result = await db`SELECT
+        products.*, 
+        (
+          SELECT COALESCE(json_agg(row_to_json(products_picture.*)), '[]'::json) 
+          FROM products_picture 
+          WHERE products.products_id = products_picture.products_id
+        ) as products_picture
+      FROM products
+      WHERE size @> ${sizes} AND color @> ${colors} AND category = ${categoryFilter}
+      ${
+        sort
+          ? db`ORDER BY size DESC, color DESC, category DESC, created_at DESC`
+          : db`ORDER BY size ASC, color ASC, category ASC, created_at ASC`
+      }`;
+  } else if (!sizeFilter && colorFilter && categoryFilter && brandFilter) {
+    const colors = colorFilter.split(",");
+
+    result = await db`SELECT
+        products.*, 
+        (
+          SELECT COALESCE(json_agg(row_to_json(products_picture.*)), '[]'::json) 
+          FROM products_picture 
+          WHERE products.products_id = products_picture.products_id
+        ) as products_picture
+      FROM products
+      WHERE color @> ${colors} AND category = ${categoryFilter} AND brand = ${brandFilter}
+      ${
+        sort
+          ? db`ORDER BY color DESC, category DESC, brand DESC, created_at DESC`
+          : db`ORDER BY color ASC, category ASC, brand DESC, created_at ASC`
+      }`;
+  } else if (sizeFilter && !colorFilter && categoryFilter && brandFilter) {
+    const sizes = sizeFilter.split(",");
+
+    result = await db`SELECT
+        products.*, 
+        (
+          SELECT COALESCE(json_agg(row_to_json(products_picture.*)), '[]'::json) 
+          FROM products_picture 
+          WHERE products.products_id = products_picture.products_id
+        ) as products_picture
+      FROM products
+      WHERE size @> ${sizes} AND category = ${categoryFilter} AND brand = ${brandFilter}
+      ${
+        sort
+          ? db`ORDER BY size DESC, category DESC, brand DESC, created_at DESC`
+          : db`ORDER BY size ASC, category ASC, brand DESC, created_at ASC`
+      }`;
+  } else if (sizeFilter && colorFilter && !categoryFilter && brandFilter) {
+    const sizes = sizeFilter.split(",");
+    const colors = colorFilter.split(",");
+
+    result = await db`SELECT
+        products.*, 
+        (
+          SELECT COALESCE(json_agg(row_to_json(products_picture.*)), '[]'::json) 
+          FROM products_picture 
+          WHERE products.products_id = products_picture.products_id
+        ) as products_picture
+      FROM products
+      WHERE size @> ${sizes} AND color @> ${colors} AND brand = ${brandFilter}
+      ${
+        sort
+          ? db`ORDER BY size DESC, color DESC, brand DESC, created_at DESC`
+          : db`ORDER BY size ASC, color ASC, brand DESC, created_at ASC`
+      }`;
+  }
+
+  return result;
+};
+
+const getAllProductFilterPaginationSort = async (params) => {
+  const {
+    limit,
+    page,
+    sort,
+    orderBy,
+    colorFilter,
+    sizeFilter,
+    categoryFilter,
+    brandFilter,
+  } = params;
+  let result;
+
+  if (sizeFilter && !colorFilter && !categoryFilter && !brandFilter) {
+    const sizes = sizeFilter.split(",");
+
+    result = await db`SELECT
+    products.*, 
+    (
+      SELECT COALESCE(json_agg(row_to_json(products_picture.*)), '[]'::json) 
+      FROM products_picture 
+      WHERE products.products_id = products_picture.products_id
+    ) as products_picture
+      FROM products
+      WHERE size @> ${sizes} 
+      ${
+        sort
+          ? db`ORDER BY size DESC, created_at DESC, created_at DESC`
+          : db`ORDER BY size ASC, created_at ASC, created_at ASC`
+      }
+      LIMIT ${limit} OFFSET ${limit * (page - 1)}`;
+  } else if (!sizeFilter && colorFilter && !categoryFilter && !brandFilter) {
+    const colors = colorFilter.split(",");
+
+    result = await db`SELECT
+        products.*, 
+        (
+          SELECT COALESCE(json_agg(row_to_json(products_picture.*)), '[]'::json) 
+          FROM products_picture 
+          WHERE products.products_id = products_picture.products_id
+        ) as products_picture
+      FROM products
+      WHERE color @> ${colors}
+      ${
+        sort
+          ? db`ORDER BY color DESC, created_at DESC`
+          : db`ORDER BY color ASC, created_at ASC`
+      }
+      LIMIT ${limit} OFFSET ${limit * (page - 1)}`;
+  } else if (!sizeFilter && !colorFilter && categoryFilter && !brandFilter) {
+    result = await db`SELECT
+        products.*, 
+        (
+          SELECT COALESCE(json_agg(row_to_json(products_picture.*)), '[]'::json) 
+          FROM products_picture 
+          WHERE products.products_id = products_picture.products_id
+        ) as products_picture
+      FROM products
+      WHERE category = ${categoryFilter}
+      ${
+        sort
+          ? db`ORDER BY category DESC, created_at DESC`
+          : db`ORDER BY category ASC, created_at ASC`
+      }
+      LIMIT ${limit} OFFSET ${limit * (page - 1)}`;
+  } else if (!sizeFilter && !colorFilter && !categoryFilter && brandFilter) {
+    result = await db`SELECT
+        products.*, 
+        (
+          SELECT COALESCE(json_agg(row_to_json(products_picture.*)), '[]'::json) 
+          FROM products_picture 
+          WHERE products.products_id = products_picture.products_id
+        ) as products_picture
+      FROM products
+      WHERE brand = ${brandFilter}
+      ${
+        sort
+          ? db`ORDER BY brand DESC, created_at DESC`
+          : db`ORDER BY brand ASC, created_at ASC`
+      }
+      LIMIT ${limit} OFFSET ${limit * (page - 1)}`;
+  }
+  ////////////////////////@
+  ////////////////////////@
+  else if (sizeFilter && colorFilter && !categoryFilter && !brandFilter) {
+    const sizes = sizeFilter.split(",");
+    const colors = colorFilter.split(",");
+
+    result = await db`SELECT
+        products.*, 
+        (
+          SELECT COALESCE(json_agg(row_to_json(products_picture.*)), '[]'::json) 
+          FROM products_picture 
+          WHERE products.products_id = products_picture.products_id
+        ) as products_picture
+      FROM products
+      WHERE size @> ${sizes} AND color @> ${colors}
+      ${
+        sort
+          ? db`ORDER BY size DESC, color DESC, created_at DESC`
+          : db`ORDER BY size ASC, color ASC, created_at ASC`
+      }
+      LIMIT ${limit} OFFSET ${limit * (page - 1)}`;
+  } else if (!sizeFilter && !colorFilter && categoryFilter && brandFilter) {
+    result = await db`SELECT
+        products.*, 
+        (
+          SELECT COALESCE(json_agg(row_to_json(products_picture.*)), '[]'::json) 
+          FROM products_picture 
+          WHERE products.products_id = products_picture.products_id
+        ) as products_picture
+      FROM products
+      WHERE category = ${categoryFilter} AND brand = ${brandFilter}
+      ${
+        sort
+          ? db`ORDER BY category DESC, brand DESC, created_at DESC`
+          : db`ORDER BY category ASC, brand ASC, created_at ASC`
+      }
+      LIMIT ${limit} OFFSET ${limit * (page - 1)}`;
+  } else if (!sizeFilter && colorFilter && !categoryFilter && brandFilter) {
+    const colors = colorFilter.split(",");
+    result = await db`SELECT
+        products.*, 
+        (
+          SELECT COALESCE(json_agg(row_to_json(products_picture.*)), '[]'::json) 
+          FROM products_picture 
+          WHERE products.products_id = products_picture.products_id
+        ) as products_picture
+      FROM products
+      WHERE color @> ${colors} AND brand = ${brandFilter}
+      ${
+        sort
+          ? db`ORDER BY color DESC, brand DESC, created_at DESC`
+          : db`ORDER BY color ASC, brand ASC, created_at ASC`
+      }
+      LIMIT ${limit} OFFSET ${limit * (page - 1)}`;
+  } else if (sizeFilter && !colorFilter && categoryFilter && !brandFilter) {
+    const sizes = sizeFilter.split(",");
+
+    result = await db`SELECT
+        products.*, 
+        (
+          SELECT COALESCE(json_agg(row_to_json(products_picture.*)), '[]'::json) 
+          FROM products_picture 
+          WHERE products.products_id = products_picture.products_id
+        ) as products_picture
+      FROM products
+      WHERE size @> ${sizes} AND category = ${categoryFilter}
+      ${
+        sort
+          ? db`ORDER BY size DESC, category DESC, created_at DESC`
+          : db`ORDER BY size ASC, category ASC, created_at ASC`
+      }
+      LIMIT ${limit} OFFSET ${limit * (page - 1)}`;
+  } else if (!sizeFilter && colorFilter && categoryFilter && !brandFilter) {
+    const colors = colorFilter.split(",");
+
+    result = await db`SELECT
+        products.*, 
+        (
+          SELECT COALESCE(json_agg(row_to_json(products_picture.*)), '[]'::json) 
+          FROM products_picture 
+          WHERE products.products_id = products_picture.products_id
+        ) as products_picture
+      FROM products
+      WHERE color @> ${colors} AND category = ${categoryFilter}
+      ${
+        sort
+          ? db`ORDER BY color DESC, category DESC, created_at DESC`
+          : db`ORDER BY color ASC, category ASC, created_at ASC`
+      }
+      LIMIT ${limit} OFFSET ${limit * (page - 1)}`;
+  } else if (sizeFilter && !colorFilter && !categoryFilter && brandFilter) {
+    const sizes = sizeFilter.split(",");
+
+    result = await db`SELECT
+        products.*, 
+        (
+          SELECT COALESCE(json_agg(row_to_json(products_picture.*)), '[]'::json) 
+          FROM products_picture 
+          WHERE products.products_id = products_picture.products_id
+        ) as products_picture
+      FROM products
+      WHERE size @> ${sizes} AND brand = ${brandFilter}
+      ${
+        sort
+          ? db`ORDER BY size DESC, brand DESC, created_at DESC`
+          : db`ORDER BY size ASC, brand ASC, created_at ASC`
+      }
+      LIMIT ${limit} OFFSET ${limit * (page - 1)}`;
+  }
+
+  ////////////////////////@
+  ////////////////////////@
+  else if (sizeFilter && colorFilter && categoryFilter && brandFilter) {
+    const sizes = sizeFilter.split(",");
+    const colors = colorFilter.split(",");
+
+    result = await db`SELECT
+        products.*, 
+        (
+          SELECT COALESCE(json_agg(row_to_json(products_picture.*)), '[]'::json) 
+          FROM products_picture 
+          WHERE products.products_id = products_picture.products_id
+        ) as products_picture
+      FROM products
+      WHERE size @> ${sizes} AND color @> ${colors} AND category = ${categoryFilter} AND brand = ${brandFilter}
+      ${
+        sort
+          ? db`ORDER BY size DESC, color DESC, category DESC, brand DESC, created_at DESC`
+          : db`ORDER BY size ASC, color ASC, category ASC, brand ASC, created_at ASC`
+      }
+      LIMIT ${limit} OFFSET ${limit * (page - 1)}`;
+  } else if (sizeFilter && colorFilter && categoryFilter && !brandFilter) {
+    const sizes = sizeFilter.split(",");
+    const colors = colorFilter.split(",");
+
+    result = await db`SELECT
+        products.*, 
+        (
+          SELECT COALESCE(json_agg(row_to_json(products_picture.*)), '[]'::json) 
+          FROM products_picture 
+          WHERE products.products_id = products_picture.products_id
+        ) as products_picture
+      FROM products
+      WHERE size @> ${sizes} AND color @> ${colors} AND category = ${categoryFilter}
+      ${
+        sort
+          ? db`ORDER BY size DESC, color DESC, category DESC, created_at DESC`
+          : db`ORDER BY size ASC, color ASC, category ASC, created_at ASC`
+      }
+      LIMIT ${limit} OFFSET ${limit * (page - 1)}`;
+  } else if (!sizeFilter && colorFilter && categoryFilter && brandFilter) {
+    const colors = colorFilter.split(",");
+
+    result = await db`SELECT
+        products.*, 
+        (
+          SELECT COALESCE(json_agg(row_to_json(products_picture.*)), '[]'::json) 
+          FROM products_picture 
+          WHERE products.products_id = products_picture.products_id
+        ) as products_picture
+      FROM products
+      WHERE color @> ${colors} AND category = ${categoryFilter} AND brand = ${brandFilter}
+      ${
+        sort
+          ? db`ORDER BY color DESC, category DESC, brand DESC, created_at DESC`
+          : db`ORDER BY color ASC, category ASC, brand DESC, created_at ASC`
+      }
+      LIMIT ${limit} OFFSET ${limit * (page - 1)}`;
+  } else if (sizeFilter && !colorFilter && categoryFilter && brandFilter) {
+    const sizes = sizeFilter.split(",");
+
+    result = await db`SELECT
+        products.*, 
+        (
+          SELECT COALESCE(json_agg(row_to_json(products_picture.*)), '[]'::json) 
+          FROM products_picture 
+          WHERE products.products_id = products_picture.products_id
+        ) as products_picture
+      FROM products
+      WHERE size @> ${sizes} AND category = ${categoryFilter} AND brand = ${brandFilter}
+      ${
+        sort
+          ? db`ORDER BY size DESC, category DESC, brand DESC, created_at DESC`
+          : db`ORDER BY size ASC, category ASC, brand DESC, created_at ASC`
+      }
+      LIMIT ${limit} OFFSET ${limit * (page - 1)}`;
+  } else if (sizeFilter && colorFilter && !categoryFilter && brandFilter) {
+    const sizes = sizeFilter.split(",");
+    const colors = colorFilter.split(",");
+
+    result = await db`SELECT
+        products.*, 
+        (
+          SELECT COALESCE(json_agg(row_to_json(products_picture.*)), '[]'::json) 
+          FROM products_picture 
+          WHERE products.products_id = products_picture.products_id
+        ) as products_picture
+      FROM products
+      WHERE size @> ${sizes} AND color @> ${colors} AND brand = ${brandFilter}
+      ${
+        sort
+          ? db`ORDER BY size DESC, color DESC, brand DESC, created_at DESC`
+          : db`ORDER BY size ASC, color ASC, brand DESC, created_at ASC`
+      }
+      LIMIT ${limit} OFFSET ${limit * (page - 1)}`;
+  }
+
+  return result;
+};
+
 const getAllProduct = async (params) => {
-  const { orderBy } = params;
+  const { orderBy, colorFilter, sizeFilter, categoryFilter, brandFilter } =
+    params;
 
   let result;
 
@@ -40,7 +817,7 @@ const getAllProduct = async (params) => {
   return result;
 };
 
-const getAllProductById = async (params) => {
+const getAllProductByName = async (params) => {
   const { id } = params;
 
   return await db`SELECT
@@ -51,7 +828,7 @@ const getAllProductById = async (params) => {
     WHERE products.products_id = products_picture.products_id
   ) as products_picture
 FROM products
-WHERE products_id = ${id}
+WHERE product_name ILIKE '%' || ${id} || '%'
 ORDER BY products.created_at ASC`;
 };
 
@@ -69,45 +846,6 @@ FROM sellers
 WHERE users_id = ${sellerIdvalidator}
 ORDER BY sellers.created_at ASC`;
 };
-
-// const getAllProductPaginationSort = async (params) => {
-//   const { limit, page, sort, orderBy } = params;
-
-//   const validOrders = ["size", "color", "category", "brand"];
-//   const isValidOrder = validOrders.includes(orderBy);
-
-//   const orderColumn = isValidOrder ? orderBy : "created_at";
-//   const orderDirection = sort === "DESC" ? "DESC" : "ASC";
-//   console.log(orderColumn);
-//   console.log(orderDirection);
-//   console.log(limit);
-//   console.log(page);
-
-//   return await db`SELECT
-//   products.*,
-//   (
-//     SELECT COALESCE(json_agg(row_to_json(products_picture.*)), '[]'::json)
-//     FROM products_picture
-//     WHERE products.products_id = products_picture.products_id
-//   ) as products_picture
-// FROM products
-//  ${
-//    sort ? db`ORDER BY created_at DESC` : db`ORDER BY created_at ASC`
-//  } LIMIT ${limit} OFFSET ${limit * (page - 1)}`;
-
-//   return await db`
-//     SELECT
-//       products.*,
-//       (
-//         SELECT COALESCE(json_agg(row_to_json(products_picture.*)), '[]'::json)
-//         FROM products_picture
-//         WHERE products.products_id = products_picture.products_id
-//       ) as products_picture
-//     FROM products
-//     ORDER BY products.${orderColumn} ${orderDirection}
-//     LIMIT ${limit} OFFSET ${limit * (page - 1)}
-//   `;
-// };
 
 const getAllProductPaginationSort = async (params) => {
   const { limit, page, sort, orderBy } = params;
@@ -155,7 +893,14 @@ LIMIT ${limit} OFFSET ${limit * (page - 1)}`;
 };
 
 const getAllProductSort = async (params) => {
-  const { sort, orderBy } = params;
+  const {
+    sort,
+    orderBy,
+    colorFilter,
+    sizeFilter,
+    categoryFilter,
+    brandFilter,
+  } = params;
 
   let result;
 
@@ -354,25 +1099,42 @@ const checkSellerId = async (params) => {
   return await db`SELECT users_id from customers WHERE email = ${email}`;
 };
 
-const updateUsersSellerPartial = async (params) => {
+const updateProducts = async (params) => {
   const {
-    store_name,
-    email,
-    phone_number,
+    product_name,
+    price,
+    qty,
+    color,
+    category,
+    size,
+    brand,
+    condition,
     description,
-    profile_picture,
     id,
     defaultValue,
   } = params;
 
-  return await db`UPDATE sellers
-  SET email = ${email || defaultValue?.email},
-   phone_number = ${phone_number || defaultValue?.phone_number},
-   store_name = ${store_name || defaultValue?.store_name},
-   description =${description || defaultValue?.description},
-   profile_picture = ${profile_picture || defaultValue?.profile_picture},
+  return await db`UPDATE products
+  SET product_name = ${product_name || defaultValue?.product_name},
+   price = ${price || defaultValue?.price},
+   qty = ${qty || defaultValue?.qty},
+   color =${color || defaultValue?.color},
+   category = ${category || defaultValue?.category},
+   size = ${size || defaultValue?.size},
+   brand = ${brand || defaultValue?.brand},
+   condition =${condition || defaultValue?.condition},
+   description = ${description || defaultValue?.description},
    updated_at = NOW() AT TIME ZONE 'Asia/Jakarta' 
-  WHERE users_id = ${id} `;
+  WHERE products_id = ${id} `;
+};
+
+const updateProductPicture = async (params) => {
+  const { product_pictureproduct_picture, id, defaultValue } = params;
+
+  return await db`UPDATE products_picture
+  SET product_pictureproduct_picture = ${product_pictureproduct_picture || defaultValue?.product_pictureproduct_picture},
+   updated_at = NOW() AT TIME ZONE 'Asia/Jakarta' 
+  WHERE products_picture_id = ${id} `;
 };
 
 const updateUsersCustParallel = async (params) => {
@@ -396,16 +1158,39 @@ const getRoles = async (params) => {
   return await db`SELECT role from sellers WHERE users_id = ${sellerIdvalidator}`;
 };
 
+const getProductId = async (params) => {
+  const { id } = params;
+
+  return await db`SELECT * from products WHERE products_id = ${id}`;
+};
+
+const getProductPictureId = async (params) => {
+  const { id } = params;
+
+  return await db`SELECT * from products_picture WHERE products_picture_id = ${id}`;
+};
+
+const getProductName = async (params) => {
+  const { product_name } = params;
+
+  return await db`SELECT * from products WHERE product_name = ${product_name}`;
+};
+
 module.exports = {
+  getAllProductFilter,
+  getProductPictureId,
+  getProductName,
+  getAllProductFilterSort,
+  getAllProductFilterPaginationSort,
   getAllProduct,
-  getAllProductById,
+  getAllProductByName,
   getAllProductPaginationSort,
   getAllProductSort,
   getEmail,
   getUsername,
   getPhoneNumber,
   createUsersCust,
-  updateUsersSellerPartial,
+  updateProducts,
   deleteUsers,
   getRoles,
   getProfile,
@@ -426,4 +1211,6 @@ module.exports = {
   addProduct,
   addProductPicture,
   addProductReview,
+  getProductId,
+  updateProductPicture,
 };

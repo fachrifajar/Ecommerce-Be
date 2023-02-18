@@ -31,15 +31,24 @@ const getProfile = async (params) => {
   const { sellerIdvalidator } = params;
 
   return await db`SELECT
-  sellers.*, 
+  sellers.*,
   (
     SELECT COALESCE(json_agg(row_to_json(customers.*)), '[]'::json) 
     FROM customers 
     WHERE customers.email = sellers.email
-  ) as customers
+  ) as customers,
+  COALESCE(json_agg(address.* ORDER BY address.updated_at DESC), '[]'::json) as addresses,
+  COALESCE(json_agg(products.* ORDER BY products.created_at DESC), '[]'::json) as products,
+  COALESCE(json_agg(products_picture.*), '[]'::json) as products_picture
 FROM sellers
-WHERE users_id = ${sellerIdvalidator}
-ORDER BY sellers.created_at ASC`;
+LEFT JOIN customers ON customers.email = sellers.email
+LEFT JOIN products ON products.users_id = sellers.users_id
+LEFT JOIN products_picture ON products_picture.products_id = products.products_id
+LEFT JOIN address ON address.users_id = sellers.users_id
+WHERE sellers.users_id = ${sellerIdvalidator}
+GROUP BY sellers.users_id, customers.users_id
+ORDER BY sellers.created_at ASC;
+`;
 };
 
 const getAllUsersSellerPaginationSort = async (params) => {

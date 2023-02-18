@@ -27,35 +27,22 @@ router.patch(
 
 // READ
 router.get(
-  "/detail",
-  authMiddleware.validateToken,
-  authMiddleware.validateRole,
-  usersController.getSpecificUsersSeller
-);
-
-// READ
-router.get(
   "/:id?",
+  middleware.getProductValidator,
   redisMiddleware.getUsersCust_redis,
   usersController.getProducts
 );
 
 // UPDATE
 router.patch(
-  "/edit",
+  "/edit/photo/:usersid",
   authMiddleware.validateToken,
   authMiddleware.validateRole,
-  uploadMiddleware.fileExtLimiter([
-    ".png",
-    ".jpg",
-    ".jpeg",
-    ".PNG",
-    ".JPG",
-    ".JPEG",
-  ]),
+  uploadMiddleware.filesPayLoadExist,
   uploadMiddleware.fileSizeLimiter,
-  middleware.updateUsersPartialValidator,
-  usersController.updateUsersSellerPartial
+  uploadMiddleware.fileExtOnly,
+  uploadMiddleware.fileSizeLimiter,
+  usersController.updatePhotoProducts
 );
 
 // UPDATE
@@ -63,17 +50,9 @@ router.patch(
   "/edit/:usersid",
   authMiddleware.validateToken,
   authMiddleware.validateRole,
-  uploadMiddleware.fileExtLimiter([
-    ".png",
-    ".jpg",
-    ".jpeg",
-    ".PNG",
-    ".JPG",
-    ".JPEG",
-  ]),
   uploadMiddleware.fileSizeLimiter,
-  middleware.updateUsersPartialValidator,
-  usersController.updateUsersSellerAll
+  middleware.updateProductValidator,
+  usersController.updateProducts
 );
 
 // DELETE

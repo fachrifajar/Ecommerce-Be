@@ -322,9 +322,11 @@ const updateUsersSellerPartial = async (req, res) => {
         throw { code: 400, message: "ID not identified" };
       } else {
         let file = req.files.profile_picture;
+        let getPhoto = getAllData[0].profile_picture;
+        let getPhotoConvert = getPhoto.split("ecommerce/");
 
         cloudinary.v2.uploader.destroy(
-          getAllData[0].profile_picture,
+          getPhotoConvert[1],
           function (error, result) {
             console.log(result, error);
           }
@@ -489,9 +491,11 @@ const updateUsersSellerAll = async (req, res) => {
           throw { code: 400, message: "ID not identified" };
         } else {
           let file = req.files.profile_picture;
+          let getPhoto = getAllData[0].profile_picture;
+          let getPhotoConvert = getPhoto.split("ecommerce/");
 
           cloudinary.v2.uploader.destroy(
-            getAllData[0].profile_picture,
+            getPhotoConvert[1],
             function (error, result) {
               console.log(result, error);
             }

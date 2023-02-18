@@ -371,9 +371,11 @@ const updateUsersCustPartial = async (req, res) => {
       } else {
         if (password == undefined) {
           let file = req.files.profile_picture;
+          let getPhoto = getAllData[0].profile_picture;
+          let getPhotoConvert = getPhoto.split("ecommerce/");
 
           cloudinary.v2.uploader.destroy(
-            getAllData[0].profile_picture,
+            getPhotoConvert[1],
             function (error, result) {
               console.log(result, error);
             }
@@ -403,9 +405,11 @@ const updateUsersCustPartial = async (req, res) => {
           );
         } else {
           let file = req.files.profile_picture;
+          let getPhoto = getAllData[0].profile_picture;
+          let getPhotoConvert = getPhoto.split("ecommerce/");
 
           cloudinary.v2.uploader.destroy(
-            getAllData[0].profile_picture,
+            getPhotoConvert[1],
             function (error, result) {
               console.log(result, error);
             }
@@ -578,9 +582,11 @@ const updateUsersCustAll = async (req, res) => {
         } else {
           if (password == undefined) {
             let file = req.files.profile_picture;
+            let getPhoto = getAllData[0].profile_picture;
+            let getPhotoConvert = getPhoto.split("ecommerce/");
 
             cloudinary.v2.uploader.destroy(
-              getAllData[0].profile_picture,
+              getPhotoConvert[1],
               function (error, result) {
                 console.log(result, error);
               }
@@ -610,9 +616,11 @@ const updateUsersCustAll = async (req, res) => {
             );
           } else {
             let file = req.files.profile_picture;
+            let getPhoto = getAllData[0].profile_picture;
+            let getPhotoConvert = getPhoto.split("ecommerce/");
 
             cloudinary.v2.uploader.destroy(
-              getAllData[0].profile_picture,
+              getPhotoConvert[1],
               function (error, result) {
                 console.log(result, error);
               }
