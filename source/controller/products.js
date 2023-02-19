@@ -494,11 +494,11 @@ const updatePhotoProducts = async (req, res) => {
           if (error) {
             throw error;
           }
-
+          console.log(result.public_id)
           await models.updateProductPicture({
             defaultValue: getAllData[0],
             id: usersid,
-            product_picture,
+            product_picture: result.public_id,
           });
         }
       );

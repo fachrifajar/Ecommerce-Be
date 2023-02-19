@@ -118,7 +118,7 @@ const addProductvalidator = (req, res, next) => {
   });
 
   const rules = new Validator(req.body, {
-    product_name: "required|alphaNumeric|minLength:3|maxLength:30",
+    product_name: "required|minLength:3|maxLength:30",
     price: "required|integer",
     qty: "required|integer",
     color: "required|regexColor",
