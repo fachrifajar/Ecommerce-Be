@@ -3,183 +3,17 @@ const { v4: uuidv4 } = require("uuid");
 const { connectRedis } = require("../middleware/redis");
 const { cloudinary } = require("../middleware/upload");
 
-const getProducts = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const {
-      page,
-      limit,
-      sort,
-      orderBy,
-      colorFilter,
-      sizeFilter,
-      categoryFilter,
-      brandFilter,
-    } = req.query;
-
-    const totalDatas = await models.getAllProduct({ orderBy });
-
-    let getUsersData;
-    let getAllData;
-
-    if (colorFilter || sizeFilter || categoryFilter || brandFilter) {
-      if (!sort && !page && !limit) {
-        console.log("test atas TANPA FILTER SORT");
-        getUsersData = await models.getAllProductFilter({
-          colorFilter,
-          sizeFilter,
-          categoryFilter,
-          brandFilter,
-        });
-      }
-      if (sort && !page && !limit) {
-        console.log("test atas sort");
-        getUsersData = await models.getAllProductFilterSort({
-          sort,
-          colorFilter,
-          sizeFilter,
-          categoryFilter,
-          brandFilter,
-        });
-      }
-      if (page && limit) {
-        console.log("test atas pagination sort");
-        getAllData = await models.getAllProductFilterPaginationSort({
-          sort,
-          page,
-          limit,
-          colorFilter,
-          sizeFilter,
-          categoryFilter,
-          brandFilter,
-        });
-      }
-      if (!page && !limit) {
-        if (getUsersData.length) {
-          res.json({
-            message: `Get product with filter`,
-            data: getUsersData,
-          });
-          return;
-        } else {
-          throw { code: 422, message: "Data not found" };
-        }
-      }
-    } else {
-      console.log("bocor");
-      if (
-        id &&
-        (!colorFilter || !sizeFilter || !categoryFilter || !brandFilter)
-      ) {
-        console.log("test bawah 1");
-        getUsersData = await models.getAllProductByName({ id });
-        connectRedis.set("find_users", true, "ex", 10);
-        connectRedis.set("url", req.originalUrl, "ex", 10);
-        connectRedis.set("Id_users", id, "ex", 10);
-        connectRedis.set(
-          "getReqAccount",
-          JSON.stringify(getUsersData),
-          "ex",
-          10
-        );
-        if (getUsersData.length > 0) {
-          res.json({
-            message: `Get product with products_id: ${id}`,
-            data: getUsersData,
-          });
-          return;
-        } else {
-          throw { code: 422, message: "Data not found" };
-        }
-      }
-      if (
-        !id &&
-        !page &&
-        !limit &&
-        !sort &&
-        (!colorFilter || !sizeFilter || !categoryFilter || !brandFilter)
-      ) {
-        console.log("test bawah 2");
-        getUsersData = totalDatas;
-        connectRedis.set("url", req.originalUrl, "ex", 10);
-        connectRedis.set("find_all_users", true, "ex", 10);
-        connectRedis.set(
-          "getReqAccount",
-          JSON.stringify(getUsersData),
-          "ex",
-          10
-        );
-        res.json({
-          message: "Success get all data products",
-          total: getUsersData.length,
-          data: getUsersData,
-        });
-      }
-      if (
-        (page || limit || sort) &&
-        (!colorFilter || !sizeFilter || !categoryFilter || !brandFilter)
-      ) {
-        console.log("test bawah 3");
-        if (page && limit) {
-          getAllData = await models.getAllProductPaginationSort({
-            limit,
-            page,
-            sort,
-            orderBy,
-          });
-        } else if (sort) {
-          // let sizeFilterConvert = sizeFilter.split(",");
-
-          getAllData = await models.getAllProductSort({
-            sort,
-            orderBy,
-          });
-          connectRedis.set("url", req.originalUrl, "ex", 10);
-          connectRedis.set("isSorted", true, "ex", 10);
-          connectRedis.set("sortedData", JSON.stringify(getAllData), "ex", 10);
-          res.json({
-            message: "Success get all data products",
-            total: getAllData.length,
-            data: getAllData,
-          });
-        }
-      }
-    }
-
-    if (
-      (page && limit && sort) ||
-      (page && limit) ||
-      colorFilter ||
-      sizeFilter ||
-      categoryFilter ||
-      brandFilter
-    ) {
-      console.log("test bawah json");
-      connectRedis.set("url", req.originalUrl, "ex", 10);
-      connectRedis.set("page", page, "ex", 10);
-      connectRedis.set("limit", limit, "ex", 10);
-      connectRedis.set("dataPerPage", JSON.stringify(getAllData), "ex", 10);
-      connectRedis.set("getReqAccPagi", JSON.stringify(totalDatas), "ex", 10);
-      connectRedis.set("isPaginated", true, "ex", 10);
-      res.json({
-        message: "Success get all data products",
-        code: 200,
-        total: totalDatas.length,
-        dataPerPage: getAllData.length,
-        page: `${page} from ${Math.ceil(totalDatas.length / limit)}`,
-        data: getAllData,
-      });
-    }
-  } catch (error) {
-    res.status(500).json({
-      message: error,
-    });
-  }
-};
-
 const addCheckout = async (req, res) => {
   try {
-    const { products_id, color, size, qty } = req.body;
+    const {
+      products_id,
+      color,
+      size,
+      qty,
+      product_name,
+      store_name,
+      total_est,
+    } = req.body;
 
     const idValidator = req.users_id;
     const getData = await models.getAllProductById({ id: products_id });
@@ -188,373 +22,58 @@ const addCheckout = async (req, res) => {
       throw { code: 400, message: "Products_id not identified" };
     }
 
-    const colorChecker = getData[0].color;
-    const sizeChecker = getData[0].size;
+    const getStoreName = getData[0]?.store_name;
+    const getProductName = getData[0]?.product_name;
+    const getPrice = getData[0]?.price;
+    const getTotal = parseInt(getPrice) * qty;
 
-    console.log(colorChecker);
-    console.log(sizeChecker);
+    const getColor = getData[0].color;
+    const getSize = getData[0].size;
 
-    return;
+    let colorChecker = [];
+    let sizeChecker = [];
+    for (let i = 0; i < getColor.length; i++) {
+      if (getColor[i] == color) {
+        colorChecker.push(getColor[i]);
+      }
+    }
 
-    const regexColor = /(\b\w+\b)(?=,|$)/g;
-    const colorConverted = `{"${color.match(regexColor).join('", "')}"}`;
+    for (let i = 0; i < getSize.length; i++) {
+      if (getSize[i] == size) {
+        sizeChecker.push(getSize[i]);
+      }
+    }
 
-    const regexSize = /(\b\w+\b)(?=,|$)/g;
-    const sizeConverted = `{"${size.match(regexSize).join('", "')}"}`;
+    if (colorChecker.length !== [color].length) {
+      throw {
+        code: 400,
+        message: `please only pick available colors: ${getColor}`,
+      };
+    }
 
-    const returningProductsId = await models.addProduct({
-      users_id: idValidator,
-      product_name,
-      price: parseInt(price),
-      qty: parseInt(qty),
-      store_name: getStoreName,
-      color: colorConverted,
-      category,
-      size: sizeConverted,
-      brand,
-      condition,
-      description,
-      slug: split,
-    });
+    if (sizeChecker.length !== [size].length) {
+      throw {
+        code: 400,
+        message: `please only pick available colors: ${getSize}`,
+      };
+    }
 
-    res.status(201).json({
-      code: 201,
-      message: "Success add new Product",
-      data: req.body,
-    });
-  } catch (error) {
-    res.status(error?.code ?? 500).json({
-      message: error,
-    });
-  }
-};
-
-const addProductsReview = async (req, res) => {
-  try {
-    const { review } = req.body;
-    const { productsid } = req.params;
-
-    // const idValidator = req.seller_id;
-    // const getData = await models.getAllUsersSeller();
-    // const getStoreName = getData[0]?.store_name;
-
-    await models.addProductReview({
-      review,
-      id: productsid,
-    });
-
-    res.status(201).json({
-      code: 201,
-      message: "Success add new Product",
-      data: req.body,
-    });
-  } catch (error) {
-    res.status(error?.code ?? 500).json({
-      message: error,
-    });
-  }
-};
-
-const updateProducts = async (req, res) => {
-  try {
-    const {
-      product_name,
-      price,
-      qty,
+    await models.addCheckout({
+      products_id,
       color,
-      category,
       size,
-      brand,
-      product_picture,
-      condition,
-      description,
-    } = req.body;
-
-    const { usersid } = req.params;
-    const sellerIdvalidator = req.seller_id;
-    const getRole = await models.getRoles({ sellerIdvalidator });
-    const isAdmin = getRole[0]?.role;
-
-    const getAllData = await models.getProductId({ id: usersid });
-    if (getAllData.length == 0) {
-      throw { code: 400, message: "Product_id not identified" };
-    }
-    // console.log(getAllData[0]?.users_id);
-    // console.log(sellerIdvalidator);
-
-    if (product_name) {
-      const getProductName = await models.getProductName({ product_name });
-
-      if (getProductName.length !== 0) {
-        throw {
-          code: 401,
-          message: "product name already exists",
-        };
-      }
-    }
-
-    if (isAdmin == "admin" || sellerIdvalidator == getAllData[0]?.users_id) {
-      if (!req.files) {
-        await models.updateProducts({
-          defaultValue: getAllData[0],
-          id: usersid,
-          product_name,
-          price,
-          qty,
-          color,
-          category,
-          size,
-          brand,
-          condition,
-          description,
-        });
-
-        res.json({
-          status: "true",
-          message: "data updated",
-          data: {
-            id: usersid,
-            ...req.body,
-          },
-        });
-      }
-    } else {
-      throw {
-        code: 401,
-        message:
-          "Access not granted, only admin & valid user can access this section!",
-      };
-    }
-  } catch (error) {
-    if (error.code == "23505") {
-      if (
-        error.message ==
-        'duplicate key value violates unique constraint "email_customer"'
-      ) {
-        res.status(422).json({
-          message: "User with the provided email already exists",
-        });
-      }
-      if (
-        error.message ==
-        'duplicate key value violates unique constraint "username_customer"'
-      ) {
-        res.status(422).json({
-          message: "User with the provided username already exists",
-        });
-      }
-      if (
-        error.message ==
-        'duplicate key value violates unique constraint "phone_number_customer"'
-      ) {
-        res.status(422).json({
-          message: "User with the provided phone number already exists",
-        });
-      }
-      const statusCode =
-        error?.code && 100 <= error.code && error.code <= 599
-          ? error.code
-          : 500;
-      res.status(statusCode).json({
-        message: error.message ?? error,
-      });
-    } else {
-      res.status(500).json({
-        message: error.message,
-      });
-    }
-  }
-};
-
-const updatePhotoProducts = async (req, res) => {
-  try {
-    const { product_picture } = req.body;
-
-    const { usersid } = req.params;
-    const sellerIdvalidator = req.seller_id;
-    const getRole = await models.getRoles({ sellerIdvalidator });
-    const isAdmin = getRole[0]?.role;
-
-    const getAllData = await models.getProductPictureId({ id: usersid });
-    if (getAllData.length == 0) {
-      throw { code: 400, message: "products_picture_id not identified" };
-    }
-
-    if (isAdmin == "admin" || sellerIdvalidator == getAllData[0]?.users_id) {
-      let file = req.files.product_picture;
-      let getPhoto = getAllData[0].product_picture;
-
-      cloudinary.v2.uploader.destroy(
-        getPhoto,
-        { folder: "ecommerce" },
-        function (error, result) {
-          console.log(result, error);
-        }
-      );
-
-      cloudinary.v2.uploader.upload(
-        file.tempFilePath,
-        { public_id: uuidv4(), folder: "ecommerce" },
-        async function (error, result) {
-          if (error) {
-            throw error;
-          }
-          await models.updateProductPicture({
-            defaultValue: getAllData[0],
-            id: usersid,
-            product_picture: result.public_id,
-          });
-        }
-      );
-
-      res.json({
-        status: "true",
-        message: "data updated",
-        data: {
-          id: usersid,
-          ...req.body,
-        },
-        product_picture: req.files.product_picture.name,
-      });
-    } else {
-      throw {
-        code: 401,
-        message:
-          "Access not granted, only admin & valid user can access this section!",
-      };
-    }
-  } catch (error) {
-    if (error.code == "23505") {
-      if (
-        error.message ==
-        'duplicate key value violates unique constraint "email_customer"'
-      ) {
-        res.status(422).json({
-          message: "User with the provided email already exists",
-        });
-      }
-      if (
-        error.message ==
-        'duplicate key value violates unique constraint "username_customer"'
-      ) {
-        res.status(422).json({
-          message: "User with the provided username already exists",
-        });
-      }
-      if (
-        error.message ==
-        'duplicate key value violates unique constraint "phone_number_customer"'
-      ) {
-        res.status(422).json({
-          message: "User with the provided phone number already exists",
-        });
-      }
-      const statusCode =
-        error?.code && 100 <= error.code && error.code <= 599
-          ? error.code
-          : 500;
-      res.status(statusCode).json({
-        message: error.message ?? error,
-      });
-    } else {
-      res.status(500).json({
-        message: error.message,
-      });
-    }
-  }
-};
-
-const deleteProductPicture = async (req, res) => {
-  try {
-    console.log("masuk");
-    const { products_picture_id } = req.params;
-
-    const idValidator = req.seller_id;
-    const getRole = await models.getRoles({ sellerIdvalidator: idValidator });
-    const isAdmin = getRole[0]?.role;
-    console.log("test1");
-    const getAllData = await models.getProductPictureId({
-      id: products_picture_id,
+      qty,
+      product_name: getProductName,
+      store_name: getStoreName,
+      total_est: getTotal,
+      users_id: idValidator,
     });
-    if (getAllData.length == 0) {
-      throw { code: 400, message: "ID not identified" };
-    }
-    console.log("test2");
-    if (isAdmin == "admin" || getAllData[0]?.users_id == idValidator) {
-      let getPhoto = getAllData[0].product_picture;
 
-      cloudinary.v2.uploader.destroy(
-        getPhoto,
-        { folder: "ecommerce" },
-        function (error, result) {
-          console.log(result, error);
-        }
-      );
-
-      await models.deleteProductPicture({ id: products_picture_id });
-      res.json({
-        status: "true",
-        message: "PRODUCTS PICTURE DELETED!",
-      });
-    } else {
-      throw {
-        code: 401,
-        message: "Access not granted, only admin can access this section!",
-      };
-    }
-  } catch (error) {
-    res.status(error?.code ?? 500).json({
-      message: error,
+    res.status(201).json({
+      code: 201,
+      message: `Success add Checkout for users_id: ${idValidator} `,
+      data: req.body,
     });
-  }
-};
-
-const deleteProduct = async (req, res) => {
-  try {
-    const { products_id } = req.params;
-
-    const idValidator = req.seller_id;
-    const getRole = await models.getRoles({ sellerIdvalidator: idValidator });
-    const isAdmin = getRole[0]?.role;
-
-    const getAllData = await models.getProductId({
-      id: products_id,
-    });
-    if (getAllData.length == 0) {
-      throw { code: 400, message: "ID not identified" };
-    }
-
-    const getAllDataParallel = await models.getProductPictureByProductId({
-      id: products_id,
-    });
-    const getPhotos = getAllDataParallel.map((photo) => photo.product_picture);
-    const getProdPictId = getAllDataParallel.map(
-      (id) => id.products_picture_id
-    );
-
-    if (isAdmin == "admin" || getAllData[0]?.users_id == idValidator) {
-      for (let i = 0; i < getPhotos.length; i++) {
-        cloudinary.v2.uploader.destroy(
-          getPhotos[i],
-          { folder: "ecommerce" },
-          function (error, result) {
-            console.log(result, error);
-          }
-        );
-
-        await models.deleteProductPicture({ id: getProdPictId[i] });
-      }
-      await models.deleteProduct({ id: products_id });
-      res.json({
-        status: "true",
-        message: "PRODUCTS PICTURE DELETED!",
-      });
-    } else {
-      throw {
-        code: 401,
-        message: "Access not granted, only admin can access this section!",
-      };
-    }
   } catch (error) {
     res.status(error?.code ?? 500).json({
       message: error,
@@ -563,11 +82,5 @@ const deleteProduct = async (req, res) => {
 };
 
 module.exports = {
-  getProducts,
   addCheckout,
-  updatePhotoProducts,
-  updateProducts,
-  addProductsReview,
-  deleteProductPicture,
-  deleteProduct,
 };
