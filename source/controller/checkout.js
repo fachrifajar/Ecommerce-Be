@@ -1,4 +1,4 @@
-const models = require("../models/products");
+const models = require("../models/checkout");
 const { v4: uuidv4 } = require("uuid");
 const { connectRedis } = require("../middleware/redis");
 const { cloudinary } = require("../middleware/upload");
@@ -177,64 +177,24 @@ const getProducts = async (req, res) => {
   }
 };
 
-const addProducts = async (req, res) => {
+const addCheckout = async (req, res) => {
   try {
-    const {
-      product_name,
-      price,
-      qty,
-      color,
-      category,
-      size,
-      brand,
-      product_picture,
-      condition,
-      description,
-    } = req.body;
+    const { products_id, color, size, qty } = req.body;
 
-    const idValidator = req.seller_id;
-    console.log("idValidator", idValidator);
-    const getData = await models.getProfile({ sellerIdvalidator: idValidator });
-    const getStoreName = getData[0]?.store_name;
-    console.log(getStoreName);
-    console.log("test1");
-    if (product_name) {
-      const getProductName = await models.checkProductName({ product_name });
-      console.log("test2");
-      if (
-        getProductName[0]?.product_name.toLowerCase() ==
-        product_name.toLowerCase()
-      ) {
-        throw {
-          code: 409,
-          message: "Product with the provided name already exists",
-        };
-      }
+    const idValidator = req.users_id;
+    const getData = await models.getAllProductById({ id: products_id });
+
+    if (!getData.length) {
+      throw { code: 400, message: "Products_id not identified" };
     }
-    console.log("test3");
-    const split = product_name.split(" ").join("-");
 
-    let files = req.files.product_picture;
-    files = Array.isArray(files) ? files : [files];
+    const colorChecker = getData[0].color;
+    const sizeChecker = getData[0].size;
 
-    const uploads = files.map((file) => {
-      return new Promise((resolve, reject) => {
-        cloudinary.v2.uploader.upload(
-          file.tempFilePath,
-          { public_id: uuidv4(), folder: "ecommerce" },
-          (error, result) => {
-            if (error) {
-              reject(error);
-            } else {
-              resolve(result.public_id);
-            }
-          }
-        );
-      });
-    });
-    // console.log(uploads);
-    const uploadedPictures = await Promise.all(uploads);
-    // console.log(uploadedPictures);
+    console.log(colorChecker);
+    console.log(sizeChecker);
+
+    return;
 
     const regexColor = /(\b\w+\b)(?=,|$)/g;
     const colorConverted = `{"${color.match(regexColor).join('", "')}"}`;
@@ -257,96 +217,13 @@ const addProducts = async (req, res) => {
       slug: split,
     });
 
-    await Promise.all(
-      uploadedPictures.map((picture) => {
-        return models.addProductPicture({
-          product_picture: picture,
-          products_id: parseInt(returningProductsId),
-          users_id: idValidator,
-        });
-      })
-    );
-
     res.status(201).json({
       code: 201,
       message: "Success add new Product",
       data: req.body,
     });
   } catch (error) {
-    console.error(error);
-    const statusCode =
-      error?.code >= 400 && error?.code < 600 ? error.code : 500;
-    res.status(statusCode).json({
-      message: error,
-    });
-  }
-};
-
-const addPhotoProducts = async (req, res) => {
-  try {
-    const { product_picture } = req.body;
-    const { productsid } = req.params;
-
-    const idValidator = req.seller_id;
-
-    const getData = await models.getProductId({ id: productsid });
-    if (getData.length == 0) {
-      throw { code: 400, message: "products_id not identified" };
-    }
-    const getRole = await models.getRoles({
-      sellerIdvalidator: idValidator,
-    });
-
-    if (getData[0]?.users_id == idValidator || getRole[0] == "admin") {
-      let files = req.files.product_picture;
-      files = Array.isArray(files) ? files : [files];
-
-      const uploads = files.map((file) => {
-        return new Promise((resolve, reject) => {
-          cloudinary.v2.uploader.upload(
-            file.tempFilePath,
-            { public_id: uuidv4(), folder: "ecommerce" },
-            (error, result) => {
-              if (error) {
-                reject(error);
-              } else {
-                resolve(result.public_id);
-              }
-            }
-          );
-        });
-      });
-      console.log(uploads);
-      const uploadedPictures = await Promise.all(uploads);
-      console.log(uploadedPictures);
-
-      await Promise.all(
-        uploadedPictures.map((picture) => {
-          return models.addProductPicture({
-            product_picture: picture,
-            products_id: productsid,
-            users_id: idValidator,
-          });
-        })
-      );
-    } else {
-      throw {
-        code: 401,
-        message:
-          "Access not granted, only admin & valid user can access this section!",
-      };
-    }
-
-    res.status(201).json({
-      code: 201,
-      message: "Success add new Product",
-      data: req.files,
-    });
-  } catch (error) {
-    console.error(error);
-    const statusCode =
-      error?.code >= 400 && error?.code < 600 ? error.code : 500;
-    res.status(statusCode).json({
+    res.status(error?.code ?? 500).json({
       message: error,
     });
   }
@@ -357,21 +234,14 @@ const addProductsReview = async (req, res) => {
     const { review } = req.body;
     const { productsid } = req.params;
 
-    const getData = await models.getProductId({ id: productsid });
-    if (!getData.length) {
-      throw { code: 400, message: "products_id not identified" };
-    }
+    // const idValidator = req.seller_id;
+    // const getData = await models.getAllUsersSeller();
+    // const getStoreName = getData[0]?.store_name;
 
-    if (getData[0]?.review == null || !getData[0]?.review.length) {
-      console.log("masuk");
-      const arr = review.split("").map(Number);
-      await models.addReviewOnly({ review: arr, id: productsid });
-    } else {
-      await models.addProductReview({
-        review,
-        id: productsid,
-      });
-    }
+    await models.addProductReview({
+      review,
+      id: productsid,
+    });
 
     res.status(201).json({
       code: 201,
@@ -379,7 +249,6 @@ const addProductsReview = async (req, res) => {
       data: req.body,
     });
   } catch (error) {
-    console.error(error);
     res.status(error?.code ?? 500).json({
       message: error,
     });
@@ -695,11 +564,10 @@ const deleteProduct = async (req, res) => {
 
 module.exports = {
   getProducts,
-  addProducts,
+  addCheckout,
   updatePhotoProducts,
   updateProducts,
   addProductsReview,
   deleteProductPicture,
   deleteProduct,
-  addPhotoProducts,
 };

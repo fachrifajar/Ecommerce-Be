@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
-const usersController = require("../controller/products");
-const middleware = require("../middleware/products");
+const usersController = require("../controller/checkout");
+// const middleware = require("../middleware/products");
 const authMiddleware = require("../middleware/auth");
 const uploadMiddleware = require("../middleware/upload");
 const redisMiddleware = require("../middleware/redis");
@@ -11,22 +11,8 @@ router.post(
   "/add",
   authMiddleware.validateToken,
   authMiddleware.validateRole,
-  uploadMiddleware.filesPayLoadExist,
-  uploadMiddleware.fileSizeLimiter,
-  uploadMiddleware.fileExtOnly,
-  middleware.addProductvalidator,
-  usersController.addProducts
-);
-
-// CREATE
-router.post(
-  "/add/photo/:productsid",
-  authMiddleware.validateToken,
-  authMiddleware.validateRole,
-  uploadMiddleware.filesPayLoadExist,
-  uploadMiddleware.fileSizeLimiter,
-  uploadMiddleware.fileExtOnly,
-  usersController.addPhotoProducts
+//   middleware.addProductvalidator,
+  usersController.addCheckout
 );
 
 router.patch(
@@ -39,7 +25,7 @@ router.patch(
 // READ
 router.get(
   "/:id?",
-  middleware.getProductValidator,
+//   middleware.getProductValidator,
   redisMiddleware.getUsersCust_redis,
   usersController.getProducts
 );
@@ -62,7 +48,7 @@ router.patch(
   authMiddleware.validateToken,
   authMiddleware.validateRole,
   uploadMiddleware.fileSizeLimiter,
-  middleware.updateProductValidator,
+//   middleware.updateProductValidator,
   usersController.updateProducts
 );
 
@@ -81,5 +67,6 @@ router.delete(
   authMiddleware.validateRole,
   usersController.deleteProduct
 );
+
 
 module.exports = router;

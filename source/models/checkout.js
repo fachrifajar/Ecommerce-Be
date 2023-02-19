@@ -817,7 +817,7 @@ const getAllProduct = async (params) => {
   return result;
 };
 
-const getAllProductByName = async (params) => {
+const getAllProductById = async (params) => {
   const { id } = params;
 
   return await db`SELECT
@@ -828,7 +828,7 @@ const getAllProductByName = async (params) => {
     WHERE products.products_id = products_picture.products_id
   ) as products_picture
 FROM products
-WHERE product_name ILIKE '%' || ${id} || '%'
+WHERE products_id = ${id}
 ORDER BY products.created_at ASC`;
 };
 
@@ -1027,21 +1027,6 @@ const createUsersCust = async (params) => {
   (${email}, ${username}, ${password})`;
 };
 
-const addReviewOnly = async (params) => {
-  const { review, id } = params;
-
-  await db`UPDATE products SET review = ${review}, 
-  updated_at = NOW() AT TIME ZONE 'Asia/Jakarta' 
-  WHERE products_id = ${id}`;
-
-  await db`UPDATE products SET avg_review = (
-    SELECT AVG(value) FROM (
-      SELECT UNNEST(review) AS value FROM products
-      WHERE products_id = ${id}
-    ) AS review_values
-  ) WHERE products_id = ${id}`;
-};
-
 const addProductReview = async (params) => {
   const { review, id } = params;
 
@@ -1210,7 +1195,7 @@ module.exports = {
   getAllProductFilterSort,
   getAllProductFilterPaginationSort,
   getAllProduct,
-  getAllProductByName,
+  getAllProductById,
   getAllProductPaginationSort,
   getAllProductSort,
   getEmail,
@@ -1242,5 +1227,4 @@ module.exports = {
   updateProductPicture,
   getProductPictureByProductId,
   deleteProduct,
-  addReviewOnly,
 };
