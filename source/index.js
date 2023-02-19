@@ -44,7 +44,7 @@ app.use("/seller", require("./routes/seller"));
 app.use("/auth", require("./routes/auth"));
 app.use("/products", require("./routes/products"));
 app.use("/checkout", require("./routes/checkout"));
-// app.use("/payments", require("./routes/payments"));
+app.use("/payments", require("./routes/payments"));
 
 app.get("/", (req, res) => {
   res.json({

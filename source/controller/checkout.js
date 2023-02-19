@@ -1,7 +1,4 @@
 const models = require("../models/checkout");
-const { v4: uuidv4 } = require("uuid");
-const { connectRedis } = require("../middleware/redis");
-const { cloudinary } = require("../middleware/upload");
 
 const addCheckout = async (req, res) => {
   try {
@@ -26,9 +23,18 @@ const addCheckout = async (req, res) => {
     const getProductName = getData[0]?.product_name;
     const getPrice = getData[0]?.price;
     const getTotal = parseInt(getPrice) * qty;
-
+    const getPicture = getData[0]?.products_picture[0]?.product_picture;
+    const getQty = getData[0]?.qty;
     const getColor = getData[0].color;
     const getSize = getData[0].size;
+    const getItemSoldCount = getData[0]?.item_sold_count;
+
+    if (getQty <= 0) {
+      throw {
+        code: 400,
+        message: `${getProductName} is sold out!`,
+      };
+    }
 
     let colorChecker = [];
     let sizeChecker = [];
@@ -58,6 +64,13 @@ const addCheckout = async (req, res) => {
       };
     }
 
+    if (parseInt(qty) > parseInt(getQty)) {
+      throw {
+        code: 400,
+        message: `${getProductName}, only available ${getQty} items`,
+      };
+    }
+
     await models.addCheckout({
       products_id,
       color,
@@ -67,7 +80,22 @@ const addCheckout = async (req, res) => {
       store_name: getStoreName,
       total_est: getTotal,
       users_id: idValidator,
+      product_picture: getPicture,
     });
+
+    // if (getItemSoldCount == null) {
+    //   await models.updateProductsParallel({
+    //     products_id,
+    //     qtyDecrement: parseInt(getQty) - parseInt(qty),
+    //     item_sold_count: parseInt(qty),
+    //   });
+    // } else {
+    //   await models.updateProductsParallel({
+    //     products_id,
+    //     qtyDecrement: parseInt(getQty) - parseInt(qty),
+    //     item_sold_count: parseInt(getItemSoldCount) + parseInt(qty),
+    //   });
+    // }
 
     res.status(201).json({
       code: 201,
@@ -75,12 +103,73 @@ const addCheckout = async (req, res) => {
       data: req.body,
     });
   } catch (error) {
+    console.error(error);
     res.status(error?.code ?? 500).json({
       message: error,
     });
   }
 };
 
+const getCheckout = async (req, res) => {
+  try {
+    const idValidator = req.users_id;
+    let profileData;
+
+    profileData = await models.getCheckoutPaid({ id: idValidator });
+
+    res.json({
+      message: `Get User (cust) With Id: ${idValidator}`,
+      data: profileData,
+    });
+  } catch (error) {
+    res.status(400).json({
+      message: "Bad Request",
+      error: error,
+    });
+  }
+};
+
+const getHistory = async (req, res) => {
+  try {
+    const idValidator = req.users_id;
+    let profileData;
+
+    profileData = await models.getCheckout({ id: idValidator });
+
+    res.json({
+      message: `Get User (cust) With Id: ${idValidator}`,
+      data: profileData,
+    });
+  } catch (error) {
+    res.status(400).json({
+      message: "Bad Request",
+      error: error,
+    });
+  }
+};
+
+const getHistoryAll = async (req, res) => {
+  try {
+    const idValidator = req.users_id;
+    let profileData;
+
+    profileData = await models.getCheckoutAll({ id: idValidator });
+
+    res.json({
+      message: `Get User (cust) With Id: ${idValidator}`,
+      data: profileData,
+    });
+  } catch (error) {
+    res.status(400).json({
+      message: "Bad Request",
+      error: error,
+    });
+  }
+};
+
 module.exports = {
   addCheckout,
+  getCheckout,
+  getHistory,
+  getHistoryAll,
 };
