@@ -85,21 +85,43 @@ ORDER BY customers.created_at ASC
 const getProfile = async (params) => {
   const { idValidator } = params;
 
-  return await db`SELECT
-  customers.*,
-  (
-    SELECT COALESCE(json_agg(row_to_json(sellers.*)), '[]'::json)
-    FROM sellers
-    WHERE sellers.email = customers.email
-  ) as sellers,
-  COALESCE(json_agg(address.* ORDER BY address.updated_at DESC), '[]'::json) as addresses
-FROM customers
-LEFT JOIN address ON address.users_id = customers.users_id
-WHERE customers.users_id = ${idValidator}
-GROUP BY customers.users_id
-ORDER BY customers.created_at ASC
-`;
+  const profile = await db`
+    SELECT
+      customers.*,
+      (
+        SELECT COALESCE(json_agg(row_to_json(sellers.*)), '[]'::json)
+        FROM sellers
+        WHERE sellers.email = customers.email
+      ) AS sellers,
+      COALESCE(json_agg(address.* ORDER BY address.updated_at DESC), '[]'::json) AS addresses,
+      COALESCE(
+        (
+          SELECT json_agg(checkout.*)
+          FROM checkout
+          WHERE checkout.users_id = customers.users_id
+            AND NOT (checkout.status IS DISTINCT FROM 'paid')
+        ),
+        '[]'::json
+      ) AS checkout_paid,
+      COALESCE(
+        (
+          SELECT json_agg(checkout.*)
+          FROM checkout
+          WHERE checkout.users_id = customers.users_id
+            AND checkout.status IS DISTINCT FROM 'paid'
+        ),
+        '[]'::json
+      ) AS checkout_unpaid
+    FROM customers
+    LEFT JOIN address ON address.users_id = customers.users_id
+    WHERE customers.users_id = ${idValidator}
+    GROUP BY customers.users_id
+    ORDER BY customers.created_at ASC
+  `;
+
+  return profile[0];
 };
+
 
 const getAllUsersCustPaginationSort = async (params) => {
   const { limit, page, sort } = params;

@@ -109,6 +109,7 @@ const getSpecificUsersCust = async (req, res) => {
       data: profileData,
     });
   } catch (error) {
+    console.error(error)
     res.status(400).json({
       message: "Bad Request",
       error: error,
