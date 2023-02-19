@@ -57,10 +57,19 @@ router.patch(
 
 // DELETE
 router.delete(
-  "/delete/picture/:product_picture_id",
+  "/delete/picture/:products_picture_id",
   authMiddleware.validateToken,
   authMiddleware.validateRole,
   usersController.deleteProductPicture
 );
+
+// DELETE
+router.delete(
+  "/delete/:products_id",
+  authMiddleware.validateToken,
+  authMiddleware.validateRole,
+  usersController.deleteProduct
+);
+
 
 module.exports = router;

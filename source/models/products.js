@@ -1146,10 +1146,16 @@ const updateUsersCustParallel = async (params) => {
     WHERE seller_id = ${id} `;
 };
 
-const deleteUsers = async (params) => {
+const deleteProductPicture = async (params) => {
   const { id } = params;
 
-  return await db`DELETE FROM users WHERE users_id = ${id}`;
+  return await db`DELETE FROM products_picture WHERE products_picture_id = ${id}`;
+};
+
+const deleteProduct = async (params) => {
+  const { id } = params;
+
+  return await db`DELETE FROM products WHERE products_id = ${id}`;
 };
 
 const getRoles = async (params) => {
@@ -1168,6 +1174,12 @@ const getProductPictureId = async (params) => {
   const { id } = params;
 
   return await db`SELECT * from products_picture WHERE products_picture_id = ${id}`;
+};
+
+const getProductPictureByProductId = async (params) => {
+  const { id } = params;
+
+  return await db`SELECT * from products_picture WHERE products_id = ${id}`;
 };
 
 const getProductName = async (params) => {
@@ -1191,7 +1203,7 @@ module.exports = {
   getPhoneNumber,
   createUsersCust,
   updateProducts,
-  deleteUsers,
+  deleteProductPicture,
   getRoles,
   getProfile,
   getEmailSeller,
@@ -1213,4 +1225,6 @@ module.exports = {
   addProductReview,
   getProductId,
   updateProductPicture,
+  getProductPictureByProductId,
+  deleteProduct,
 };

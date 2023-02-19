@@ -433,8 +433,7 @@ const updatePhotoProducts = async (req, res) => {
     if (isAdmin == "admin" || sellerIdvalidator == getAllData[0]?.users_id) {
       let file = req.files.product_picture;
       let getPhoto = getAllData[0].product_picture;
-      let getPhotoConvert = getPhoto.split("ecommerce/");
-      console.log(getPhotoConvert);
+
       cloudinary.v2.uploader.destroy(
         getPhoto,
         { folder: "ecommerce" },
@@ -517,32 +516,35 @@ const updatePhotoProducts = async (req, res) => {
 
 const deleteProductPicture = async (req, res) => {
   try {
-    const { product_picture_id } = req.params;
+    console.log("masuk");
+    const { products_picture_id } = req.params;
 
     const idValidator = req.seller_id;
-    const getRole = await models.getRoles({ roleValidator: idValidator });
+    const getRole = await models.getRoles({ sellerIdvalidator: idValidator });
     const isAdmin = getRole[0]?.role;
-
-    console.log(isAdmin);
-    console.log(idValidator);
-
-    const getAllData = await models.getUsersSellerById({ id: idValidator });
+    console.log("test1");
+    const getAllData = await models.getProductPictureId({
+      id: products_picture_id,
+    });
     if (getAllData.length == 0) {
       throw { code: 400, message: "ID not identified" };
     }
+    console.log("test2");
+    if (isAdmin == "admin" || getAllData[0]?.users_id == idValidator) {
+      let getPhoto = getAllData[0].product_picture;
 
-    let valid = false;
-    for (let i = 0; i < getAllData[0]?.addresses?.length; i++) {
-      if (getAllData[0]?.addresses[i]?.address_id == addressid) {
-        valid = true;
-      }
-    }
-    console.log(valid);
-    if (isAdmin == "admin" || valid) {
-      await models.deleteAddress({ id: addressid });
+      cloudinary.v2.uploader.destroy(
+        getPhoto,
+        { folder: "ecommerce" },
+        function (error, result) {
+          console.log(result, error);
+        }
+      );
+
+      await models.deleteProductPicture({ id: products_picture_id });
       res.json({
         status: "true",
-        message: "ADDRESS DELETED!",
+        message: "PRODUCTS PICTURE DELETED!",
       });
     } else {
       throw {
@@ -552,7 +554,60 @@ const deleteProductPicture = async (req, res) => {
     }
   } catch (error) {
     res.status(error?.code ?? 500).json({
-      message: error.message,
+      message: error,
+    });
+  }
+};
+
+const deleteProduct = async (req, res) => {
+  try {
+    const { products_id } = req.params;
+
+    const idValidator = req.seller_id;
+    const getRole = await models.getRoles({ sellerIdvalidator: idValidator });
+    const isAdmin = getRole[0]?.role;
+
+    const getAllData = await models.getProductId({
+      id: products_id,
+    });
+    if (getAllData.length == 0) {
+      throw { code: 400, message: "ID not identified" };
+    }
+
+    const getAllDataParallel = await models.getProductPictureByProductId({
+      id: products_id,
+    });
+    const getPhotos = getAllDataParallel.map((photo) => photo.product_picture);
+    const getProdPictId = getAllDataParallel.map(
+      (id) => id.products_picture_id
+    );
+
+    if (isAdmin == "admin" || getAllData[0]?.users_id == idValidator) {
+      for (let i = 0; i < getPhotos.length; i++) {
+        cloudinary.v2.uploader.destroy(
+          getPhotos[i],
+          { folder: "ecommerce" },
+          function (error, result) {
+            console.log(result, error);
+          }
+        );
+
+        await models.deleteProductPicture({ id: getProdPictId[i] });
+      }
+      await models.deleteProduct({ id: products_id });
+      res.json({
+        status: "true",
+        message: "PRODUCTS PICTURE DELETED!",
+      });
+    } else {
+      throw {
+        code: 401,
+        message: "Access not granted, only admin can access this section!",
+      };
+    }
+  } catch (error) {
+    res.status(error?.code ?? 500).json({
+      message: error,
     });
   }
 };
@@ -564,4 +619,5 @@ module.exports = {
   updateProducts,
   addProductsReview,
   deleteProductPicture,
+  deleteProduct,
 };
