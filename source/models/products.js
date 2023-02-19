@@ -1129,10 +1129,10 @@ const updateProducts = async (params) => {
 };
 
 const updateProductPicture = async (params) => {
-  const { product_pictureproduct_picture, id, defaultValue } = params;
+  const { product_picture, id, defaultValue } = params;
 
   return await db`UPDATE products_picture
-  SET product_pictureproduct_picture = ${product_pictureproduct_picture || defaultValue?.product_pictureproduct_picture},
+  SET product_picture = ${product_picture || defaultValue?.product_picture},
    updated_at = NOW() AT TIME ZONE 'Asia/Jakarta' 
   WHERE products_picture_id = ${id} `;
 };

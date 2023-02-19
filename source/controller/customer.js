@@ -375,7 +375,7 @@ const updateUsersCustPartial = async (req, res) => {
           let getPhotoConvert = getPhoto.split("ecommerce/");
 
           cloudinary.v2.uploader.destroy(
-            getPhotoConvert[1],
+            getPhoto,
             function (error, result) {
               console.log(result, error);
             }
@@ -409,7 +409,7 @@ const updateUsersCustPartial = async (req, res) => {
           let getPhotoConvert = getPhoto.split("ecommerce/");
 
           cloudinary.v2.uploader.destroy(
-            getPhotoConvert[1],
+            getPhoto,
             function (error, result) {
               console.log(result, error);
             }
@@ -586,7 +586,7 @@ const updateUsersCustAll = async (req, res) => {
             let getPhotoConvert = getPhoto.split("ecommerce/");
 
             cloudinary.v2.uploader.destroy(
-              getPhotoConvert[1],
+              getPhoto,
               function (error, result) {
                 console.log(result, error);
               }
@@ -620,7 +620,7 @@ const updateUsersCustAll = async (req, res) => {
             let getPhotoConvert = getPhoto.split("ecommerce/");
 
             cloudinary.v2.uploader.destroy(
-              getPhotoConvert[1],
+              getPhoto,
               function (error, result) {
                 console.log(result, error);
               }

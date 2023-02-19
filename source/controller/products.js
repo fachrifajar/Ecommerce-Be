@@ -368,50 +368,6 @@ const updateProducts = async (req, res) => {
           },
         });
       }
-      // else {
-      //   if (getAllData.length == 0) {
-      //     throw { code: 400, message: "ID not identified" };
-      //   } else {
-      //     let file = req.files.profile_picture;
-
-      //     cloudinary.v2.uploader.destroy(
-      //       getAllData[0].profile_picture,
-      //       function (error, result) {
-      //         console.log(result, error);
-      //       }
-      //     );
-
-      //     cloudinary.v2.uploader.upload(
-      //       file.tempFilePath,
-      //       { public_id: uuidv4(), folder: "ecommerce" },
-      //       async function (error, result) {
-      //         if (error) {
-      //           throw error;
-      //         }
-
-      //         await models.updateUsersSellerPartial({
-      //           defaultValue: getAllData[0],
-      //           id: sellerIdvalidator,
-      //           store_name,
-      //           email,
-      //           phone_number,
-      //           description,
-      //           profile_picture,
-      //         });
-      //       }
-      //     );
-
-      //     res.json({
-      //       status: "true",
-      //       message: "data updated",
-      //       data: {
-      //         id: sellerIdvalidator,
-      //         ...req.body,
-      //       },
-      //       profile_picture: req.files.profile_picture.name,
-      //     });
-      //   }
-      // }
     } else {
       throw {
         code: 401,
@@ -480,7 +436,7 @@ const updatePhotoProducts = async (req, res) => {
       let getPhotoConvert = getPhoto.split("ecommerce/");
       console.log(getPhotoConvert);
       cloudinary.v2.uploader.destroy(
-        getPhotoConvert[1],
+        getPhoto,
         { folder: "ecommerce" },
         function (error, result) {
           console.log(result, error);
@@ -494,7 +450,6 @@ const updatePhotoProducts = async (req, res) => {
           if (error) {
             throw error;
           }
-          console.log(result.public_id)
           await models.updateProductPicture({
             defaultValue: getAllData[0],
             id: usersid,
