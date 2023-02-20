@@ -16,7 +16,7 @@ const getAllProductFilter = async (params) => {
           WHERE products.products_id = products_picture.products_id
         ) as products_picture
       FROM products
-      WHERE size @> ${sizes} 
+      WHERE size @> ${sizes} AND products.qty > 0
       ORDER BY size ASC, created_at ASC`;
   } else if (!sizeFilter && colorFilter && !categoryFilter && !brandFilter) {
     const colors = colorFilter.split(",");
@@ -29,7 +29,7 @@ const getAllProductFilter = async (params) => {
           WHERE products.products_id = products_picture.products_id
         ) as products_picture
       FROM products
-      WHERE color @> ${colors}
+      WHERE color @> ${colors} AND products.qty > 0
       ORDER BY color ASC, created_at ASC`;
   } else if (!sizeFilter && !colorFilter && categoryFilter && !brandFilter) {
     result = await db`SELECT
@@ -40,7 +40,7 @@ const getAllProductFilter = async (params) => {
           WHERE products.products_id = products_picture.products_id
         ) as products_picture
       FROM products
-      WHERE category = ${categoryFilter}
+      WHERE category = ${categoryFilter} AND products.qty > 0
       ORDER BY category ASC, created_at ASC`;
   } else if (!sizeFilter && !colorFilter && !categoryFilter && brandFilter) {
     result = await db`SELECT
@@ -51,7 +51,7 @@ const getAllProductFilter = async (params) => {
           WHERE products.products_id = products_picture.products_id
         ) as products_picture
       FROM products
-      WHERE brand = ${brandFilter}
+      WHERE brand = ${brandFilter} AND products.qty > 0
       ORDER BY brand ASC, created_at ASC`;
   }
   ////////////////////////@
@@ -68,7 +68,7 @@ const getAllProductFilter = async (params) => {
           WHERE products.products_id = products_picture.products_id
         ) as products_picture
       FROM products
-      WHERE size @> ${sizes} AND color @> ${colors}
+      WHERE size @> ${sizes} AND color @> ${colors} AND products.qty > 0
       ORDER BY size ASC, color ASC, created_at ASC`;
   } else if (!sizeFilter && !colorFilter && categoryFilter && brandFilter) {
     result = await db`SELECT
@@ -79,7 +79,7 @@ const getAllProductFilter = async (params) => {
           WHERE products.products_id = products_picture.products_id
         ) as products_picture
       FROM products
-      WHERE category = ${categoryFilter} AND brand = ${brandFilter}
+      WHERE category = ${categoryFilter} AND brand = ${brandFilter} AND products.qty > 0
       ORDER BY category ASC, brand ASC, created_at ASC`;
   } else if (!sizeFilter && colorFilter && !categoryFilter && brandFilter) {
     const colors = colorFilter.split(",");
@@ -91,7 +91,7 @@ const getAllProductFilter = async (params) => {
           WHERE products.products_id = products_picture.products_id
         ) as products_picture
       FROM products
-      WHERE color @> ${colors} AND brand = ${brandFilter}
+      WHERE color @> ${colors} AND brand = ${brandFilter} AND products.qty > 0
       ORDER BY color ASC, brand ASC, created_at ASC`;
   } else if (sizeFilter && !colorFilter && categoryFilter && !brandFilter) {
     const sizes = sizeFilter.split(",");
@@ -104,7 +104,7 @@ const getAllProductFilter = async (params) => {
           WHERE products.products_id = products_picture.products_id
         ) as products_picture
       FROM products
-      WHERE size @> ${sizes} AND category = ${categoryFilter}
+      WHERE size @> ${sizes} AND category = ${categoryFilter} AND products.qty > 0
       ORDER BY size ASC, category ASC, created_at ASC`;
   } else if (!sizeFilter && colorFilter && categoryFilter && !brandFilter) {
     const colors = colorFilter.split(",");
@@ -117,7 +117,7 @@ const getAllProductFilter = async (params) => {
           WHERE products.products_id = products_picture.products_id
         ) as products_picture
       FROM products
-      WHERE color @> ${colors} AND category = ${categoryFilter}
+      WHERE color @> ${colors} AND category = ${categoryFilter} AND products.qty > 0
       ORDER BY color ASC, category ASC, created_at ASC`;
   } else if (sizeFilter && !colorFilter && !categoryFilter && brandFilter) {
     const sizes = sizeFilter.split(",");
@@ -130,7 +130,7 @@ const getAllProductFilter = async (params) => {
           WHERE products.products_id = products_picture.products_id
         ) as products_picture
       FROM products
-      WHERE size @> ${sizes} AND brand = ${brandFilter}
+      WHERE size @> ${sizes} AND brand = ${brandFilter} AND products.qty > 0
       ORDER BY size ASC, brand ASC, created_at ASC`;
   }
 
@@ -148,7 +148,7 @@ const getAllProductFilter = async (params) => {
           WHERE products.products_id = products_picture.products_id
         ) as products_picture
       FROM products
-      WHERE size @> ${sizes} AND color @> ${colors} AND category = ${categoryFilter} AND brand = ${brandFilter}
+      WHERE size @> ${sizes} AND color @> ${colors} AND category = ${categoryFilter} AND brand = ${brandFilter} AND products.qty > 0
       ORDER BY size ASC, color ASC, category ASC, brand ASC, created_at ASC`;
   } else if (sizeFilter && colorFilter && categoryFilter && !brandFilter) {
     const sizes = sizeFilter.split(",");
@@ -162,7 +162,7 @@ const getAllProductFilter = async (params) => {
           WHERE products.products_id = products_picture.products_id
         ) as products_picture
       FROM products
-      WHERE size @> ${sizes} AND color @> ${colors} AND category = ${categoryFilter}
+      WHERE size @> ${sizes} AND color @> ${colors} AND category = ${categoryFilter} AND products.qty > 0
       ORDER BY size ASC, color ASC, category ASC, created_at ASC`;
   } else if (!sizeFilter && colorFilter && categoryFilter && brandFilter) {
     const colors = colorFilter.split(",");
@@ -175,7 +175,7 @@ const getAllProductFilter = async (params) => {
           WHERE products.products_id = products_picture.products_id
         ) as products_picture
       FROM products
-      WHERE color @> ${colors} AND category = ${categoryFilter} AND brand = ${brandFilter}
+      WHERE color @> ${colors} AND category = ${categoryFilter} AND brand = ${brandFilter} AND products.qty > 0
       ORDER BY color ASC, category ASC, brand ASC, created_at ASC`;
   } else if (sizeFilter && !colorFilter && categoryFilter && brandFilter) {
     const sizes = sizeFilter.split(",");
@@ -188,7 +188,7 @@ const getAllProductFilter = async (params) => {
           WHERE products.products_id = products_picture.products_id
         ) as products_picture
       FROM products
-      WHERE size @> ${sizes} AND category = ${categoryFilter} AND brand = ${brandFilter}
+      WHERE size @> ${sizes} AND category = ${categoryFilter} AND brand = ${brandFilter} AND products.qty > 0
       ORDER BY size ASC, category ASC, brand ASC, created_at ASC`;
   } else if (sizeFilter && colorFilter && !categoryFilter && brandFilter) {
     const sizes = sizeFilter.split(",");
@@ -202,7 +202,7 @@ const getAllProductFilter = async (params) => {
           WHERE products.products_id = products_picture.products_id
         ) as products_picture
       FROM products
-      WHERE size @> ${sizes} AND color @> ${colors} AND brand = ${brandFilter}
+      WHERE size @> ${sizes} AND color @> ${colors} AND brand = ${brandFilter} AND products.qty > 0
       ORDER BY size ASC, color ASC, brand ASC, created_at ASC`;
   }
 
@@ -231,7 +231,7 @@ const getAllProductFilterSort = async (params) => {
           WHERE products.products_id = products_picture.products_id
         ) as products_picture
       FROM products
-      WHERE size @> ${sizes} 
+      WHERE size @> ${sizes} AND products.qty > 0
       ${
         sort
           ? db`ORDER BY size DESC, created_at DESC`
@@ -248,7 +248,7 @@ const getAllProductFilterSort = async (params) => {
           WHERE products.products_id = products_picture.products_id
         ) as products_picture
       FROM products
-      WHERE color @> ${colors}
+      WHERE color @> ${colors} AND products.qty > 0
       ${
         sort
           ? db`ORDER BY color DESC, created_at DESC`
@@ -263,7 +263,7 @@ const getAllProductFilterSort = async (params) => {
           WHERE products.products_id = products_picture.products_id
         ) as products_picture
       FROM products
-      WHERE category = ${categoryFilter}
+      WHERE category = ${categoryFilter} AND products.qty > 0
       ${
         sort
           ? db`ORDER BY category DESC, created_at DESC`
@@ -278,7 +278,7 @@ const getAllProductFilterSort = async (params) => {
           WHERE products.products_id = products_picture.products_id
         ) as products_picture
       FROM products
-      WHERE brand = ${brandFilter}
+      WHERE brand = ${brandFilter} AND products.qty > 0
       ${
         sort
           ? db`ORDER BY brand DESC, created_at DESC`
@@ -299,7 +299,7 @@ const getAllProductFilterSort = async (params) => {
           WHERE products.products_id = products_picture.products_id
         ) as products_picture
       FROM products
-      WHERE size @> ${sizes} AND color @> ${colors}
+      WHERE size @> ${sizes} AND color @> ${colors} AND products.qty > 0
       ${
         sort
           ? db`ORDER BY size DESC, color DESC, created_at DESC`
@@ -314,7 +314,7 @@ const getAllProductFilterSort = async (params) => {
           WHERE products.products_id = products_picture.products_id
         ) as products_picture
       FROM products
-      WHERE category = ${categoryFilter} AND brand = ${brandFilter}
+      WHERE category = ${categoryFilter} AND brand = ${brandFilter} AND products.qty > 0
       ${
         sort
           ? db`ORDER BY category DESC, brand DESC, created_at DESC`
@@ -330,7 +330,7 @@ const getAllProductFilterSort = async (params) => {
           WHERE products.products_id = products_picture.products_id
         ) as products_picture
       FROM products
-      WHERE color @> ${colors} AND brand = ${brandFilter}
+      WHERE color @> ${colors} AND brand = ${brandFilter} AND products.qty > 0
       ${
         sort
           ? db`ORDER BY color DESC, brand DESC, created_at DESC`
@@ -347,7 +347,7 @@ const getAllProductFilterSort = async (params) => {
           WHERE products.products_id = products_picture.products_id
         ) as products_picture
       FROM products
-      WHERE size @> ${sizes} AND category = ${categoryFilter}
+      WHERE size @> ${sizes} AND category = ${categoryFilter} AND products.qty > 0
       ${
         sort
           ? db`ORDER BY size DESC, category DESC, created_at DESC`
@@ -364,7 +364,7 @@ const getAllProductFilterSort = async (params) => {
           WHERE products.products_id = products_picture.products_id
         ) as products_picture
       FROM products
-      WHERE color @> ${colors} AND category = ${categoryFilter}
+      WHERE color @> ${colors} AND category = ${categoryFilter} AND products.qty > 0
       ${
         sort
           ? db`ORDER BY color DESC, category DESC, created_at DESC`
@@ -381,7 +381,7 @@ const getAllProductFilterSort = async (params) => {
           WHERE products.products_id = products_picture.products_id
         ) as products_picture
       FROM products
-      WHERE size @> ${sizes} AND brand = ${brandFilter}
+      WHERE size @> ${sizes} AND brand = ${brandFilter} AND products.qty > 0
       ${
         sort
           ? db`ORDER BY size DESC, brand DESC, created_at DESC`
@@ -403,7 +403,7 @@ const getAllProductFilterSort = async (params) => {
           WHERE products.products_id = products_picture.products_id
         ) as products_picture
       FROM products
-      WHERE size @> ${sizes} AND color @> ${colors} AND category = ${categoryFilter} AND brand = ${brandFilter}
+      WHERE size @> ${sizes} AND color @> ${colors} AND category = ${categoryFilter} AND brand = ${brandFilter} AND products.qty > 0
       ${
         sort
           ? db`ORDER BY size DESC, color DESC, category DESC, brand DESC, created_at DESC`
@@ -421,7 +421,7 @@ const getAllProductFilterSort = async (params) => {
           WHERE products.products_id = products_picture.products_id
         ) as products_picture
       FROM products
-      WHERE size @> ${sizes} AND color @> ${colors} AND category = ${categoryFilter}
+      WHERE size @> ${sizes} AND color @> ${colors} AND category = ${categoryFilter} AND products.qty > 0
       ${
         sort
           ? db`ORDER BY size DESC, color DESC, category DESC, created_at DESC`
@@ -438,7 +438,7 @@ const getAllProductFilterSort = async (params) => {
           WHERE products.products_id = products_picture.products_id
         ) as products_picture
       FROM products
-      WHERE color @> ${colors} AND category = ${categoryFilter} AND brand = ${brandFilter}
+      WHERE color @> ${colors} AND category = ${categoryFilter} AND brand = ${brandFilter} AND products.qty > 0
       ${
         sort
           ? db`ORDER BY color DESC, category DESC, brand DESC, created_at DESC`
@@ -455,7 +455,7 @@ const getAllProductFilterSort = async (params) => {
           WHERE products.products_id = products_picture.products_id
         ) as products_picture
       FROM products
-      WHERE size @> ${sizes} AND category = ${categoryFilter} AND brand = ${brandFilter}
+      WHERE size @> ${sizes} AND category = ${categoryFilter} AND brand = ${brandFilter} AND products.qty > 0
       ${
         sort
           ? db`ORDER BY size DESC, category DESC, brand DESC, created_at DESC`
@@ -473,7 +473,7 @@ const getAllProductFilterSort = async (params) => {
           WHERE products.products_id = products_picture.products_id
         ) as products_picture
       FROM products
-      WHERE size @> ${sizes} AND color @> ${colors} AND brand = ${brandFilter}
+      WHERE size @> ${sizes} AND color @> ${colors} AND brand = ${brandFilter} AND products.qty > 0
       ${
         sort
           ? db`ORDER BY size DESC, color DESC, brand DESC, created_at DESC`
@@ -508,7 +508,7 @@ const getAllProductFilterPaginationSort = async (params) => {
       WHERE products.products_id = products_picture.products_id
     ) as products_picture
       FROM products
-      WHERE size @> ${sizes} 
+      WHERE size @> ${sizes} AND products.qty > 0
       ${
         sort
           ? db`ORDER BY size DESC, created_at DESC, created_at DESC`
@@ -526,7 +526,7 @@ const getAllProductFilterPaginationSort = async (params) => {
           WHERE products.products_id = products_picture.products_id
         ) as products_picture
       FROM products
-      WHERE color @> ${colors}
+      WHERE color @> ${colors} AND products.qty > 0
       ${
         sort
           ? db`ORDER BY color DESC, created_at DESC`
@@ -542,7 +542,7 @@ const getAllProductFilterPaginationSort = async (params) => {
           WHERE products.products_id = products_picture.products_id
         ) as products_picture
       FROM products
-      WHERE category = ${categoryFilter}
+      WHERE category = ${categoryFilter} AND products.qty > 0
       ${
         sort
           ? db`ORDER BY category DESC, created_at DESC`
@@ -558,7 +558,7 @@ const getAllProductFilterPaginationSort = async (params) => {
           WHERE products.products_id = products_picture.products_id
         ) as products_picture
       FROM products
-      WHERE brand = ${brandFilter}
+      WHERE brand = ${brandFilter} AND products.qty > 0
       ${
         sort
           ? db`ORDER BY brand DESC, created_at DESC`
@@ -580,7 +580,7 @@ const getAllProductFilterPaginationSort = async (params) => {
           WHERE products.products_id = products_picture.products_id
         ) as products_picture
       FROM products
-      WHERE size @> ${sizes} AND color @> ${colors}
+      WHERE size @> ${sizes} AND color @> ${colors} AND products.qty > 0
       ${
         sort
           ? db`ORDER BY size DESC, color DESC, created_at DESC`
@@ -596,7 +596,7 @@ const getAllProductFilterPaginationSort = async (params) => {
           WHERE products.products_id = products_picture.products_id
         ) as products_picture
       FROM products
-      WHERE category = ${categoryFilter} AND brand = ${brandFilter}
+      WHERE category = ${categoryFilter} AND brand = ${brandFilter} AND products.qty > 0
       ${
         sort
           ? db`ORDER BY category DESC, brand DESC, created_at DESC`
@@ -613,7 +613,7 @@ const getAllProductFilterPaginationSort = async (params) => {
           WHERE products.products_id = products_picture.products_id
         ) as products_picture
       FROM products
-      WHERE color @> ${colors} AND brand = ${brandFilter}
+      WHERE color @> ${colors} AND brand = ${brandFilter} AND products.qty > 0
       ${
         sort
           ? db`ORDER BY color DESC, brand DESC, created_at DESC`
@@ -631,7 +631,7 @@ const getAllProductFilterPaginationSort = async (params) => {
           WHERE products.products_id = products_picture.products_id
         ) as products_picture
       FROM products
-      WHERE size @> ${sizes} AND category = ${categoryFilter}
+      WHERE size @> ${sizes} AND category = ${categoryFilter} AND products.qty > 0
       ${
         sort
           ? db`ORDER BY size DESC, category DESC, created_at DESC`
@@ -649,7 +649,7 @@ const getAllProductFilterPaginationSort = async (params) => {
           WHERE products.products_id = products_picture.products_id
         ) as products_picture
       FROM products
-      WHERE color @> ${colors} AND category = ${categoryFilter}
+      WHERE color @> ${colors} AND category = ${categoryFilter} AND products.qty > 0
       ${
         sort
           ? db`ORDER BY color DESC, category DESC, created_at DESC`
@@ -667,7 +667,7 @@ const getAllProductFilterPaginationSort = async (params) => {
           WHERE products.products_id = products_picture.products_id
         ) as products_picture
       FROM products
-      WHERE size @> ${sizes} AND brand = ${brandFilter}
+      WHERE size @> ${sizes} AND brand = ${brandFilter} AND products.qty > 0
       ${
         sort
           ? db`ORDER BY size DESC, brand DESC, created_at DESC`
@@ -690,7 +690,7 @@ const getAllProductFilterPaginationSort = async (params) => {
           WHERE products.products_id = products_picture.products_id
         ) as products_picture
       FROM products
-      WHERE size @> ${sizes} AND color @> ${colors} AND category = ${categoryFilter} AND brand = ${brandFilter}
+      WHERE size @> ${sizes} AND color @> ${colors} AND category = ${categoryFilter} AND brand = ${brandFilter} AND products.qty > 0
       ${
         sort
           ? db`ORDER BY size DESC, color DESC, category DESC, brand DESC, created_at DESC`
@@ -709,7 +709,7 @@ const getAllProductFilterPaginationSort = async (params) => {
           WHERE products.products_id = products_picture.products_id
         ) as products_picture
       FROM products
-      WHERE size @> ${sizes} AND color @> ${colors} AND category = ${categoryFilter}
+      WHERE size @> ${sizes} AND color @> ${colors} AND category = ${categoryFilter} AND products.qty > 0
       ${
         sort
           ? db`ORDER BY size DESC, color DESC, category DESC, created_at DESC`
@@ -727,7 +727,7 @@ const getAllProductFilterPaginationSort = async (params) => {
           WHERE products.products_id = products_picture.products_id
         ) as products_picture
       FROM products
-      WHERE color @> ${colors} AND category = ${categoryFilter} AND brand = ${brandFilter}
+      WHERE color @> ${colors} AND category = ${categoryFilter} AND brand = ${brandFilter} AND products.qty > 0
       ${
         sort
           ? db`ORDER BY color DESC, category DESC, brand DESC, created_at DESC`
@@ -745,7 +745,7 @@ const getAllProductFilterPaginationSort = async (params) => {
           WHERE products.products_id = products_picture.products_id
         ) as products_picture
       FROM products
-      WHERE size @> ${sizes} AND category = ${categoryFilter} AND brand = ${brandFilter}
+      WHERE size @> ${sizes} AND category = ${categoryFilter} AND brand = ${brandFilter} AND products.qty > 0
       ${
         sort
           ? db`ORDER BY size DESC, category DESC, brand DESC, created_at DESC`
@@ -764,7 +764,7 @@ const getAllProductFilterPaginationSort = async (params) => {
           WHERE products.products_id = products_picture.products_id
         ) as products_picture
       FROM products
-      WHERE size @> ${sizes} AND color @> ${colors} AND brand = ${brandFilter}
+      WHERE size @> ${sizes} AND color @> ${colors} AND brand = ${brandFilter} AND products.qty > 0
       ${
         sort
           ? db`ORDER BY size DESC, color DESC, brand DESC, created_at DESC`
@@ -791,6 +791,7 @@ const getAllProduct = async (params) => {
       WHERE products.products_id = products_picture.products_id
     ) as products_picture
   FROM products
+  WHERE products.qty > 0
   ORDER BY products.created_at ASC`;
   } else if (orderBy == "popular") {
     result = await db`SELECT
@@ -801,6 +802,7 @@ const getAllProduct = async (params) => {
       WHERE products.products_id = products_picture.products_id
     ) as products_picture
   FROM products
+  WHERE products.qty > 0
   ORDER BY products.avg_review ASC`;
   } else if (orderBy == "sold") {
     result = await db`SELECT
@@ -811,11 +813,13 @@ const getAllProduct = async (params) => {
       WHERE products.products_id = products_picture.products_id
     ) as products_picture
   FROM products
+  WHERE products.qty > 0
   ORDER BY products.item_sold_count ASC`;
   }
 
   return result;
 };
+
 
 const getAllProductByName = async (params) => {
   const { id } = params;
@@ -828,7 +832,7 @@ const getAllProductByName = async (params) => {
     WHERE products.products_id = products_picture.products_id
   ) as products_picture
 FROM products
-WHERE product_name ILIKE '%' || ${id} || '%'
+WHERE product_name ILIKE '%' || ${id} || '%' AND products.qty > 0
 ORDER BY products.created_at ASC`;
 };
 
@@ -861,6 +865,7 @@ const getAllProductPaginationSort = async (params) => {
       WHERE products.products_id = products_picture.products_id
     ) as products_picture
   FROM products
+  WHERE products.qty > 0
   ${sort ? db`ORDER BY created_at DESC` : db`ORDER BY created_at ASC`}
   LIMIT ${limit} OFFSET ${limit * (page - 1)}`;
   }
@@ -874,6 +879,7 @@ const getAllProductPaginationSort = async (params) => {
     WHERE products.products_id = products_picture.products_id
   ) as products_picture
 FROM products
+WHERE products.qty > 0
 ${sort ? db`ORDER BY avg_review DESC` : db`ORDER BY avg_review ASC`}
 LIMIT ${limit} OFFSET ${limit * (page - 1)}`;
   } else if (orderBy == "sold") {
@@ -885,6 +891,7 @@ LIMIT ${limit} OFFSET ${limit * (page - 1)}`;
       WHERE products.products_id = products_picture.products_id
     ) as products_picture
   FROM products
+  WHERE products.qty > 0
   ${sort ? db`ORDER BY item_sold_count DESC` : db`ORDER BY item_sold_count ASC`}
   LIMIT ${limit} OFFSET ${limit * (page - 1)}`;
   }
@@ -913,6 +920,7 @@ const getAllProductSort = async (params) => {
       WHERE products.products_id = products_picture.products_id
     ) as products_picture
   FROM products
+  WHERE products.qty > 0
   ${sort ? db`ORDER BY created_at DESC` : db`ORDER BY created_at ASC`}`;
   }
 
@@ -925,6 +933,7 @@ const getAllProductSort = async (params) => {
     WHERE products.products_id = products_picture.products_id
   ) as products_picture
 FROM products
+WHERE products.qty > 0
 ${sort ? db`ORDER BY avg_review DESC` : db`ORDER BY avg_review ASC`}`;
   } else if (orderBy == "sold") {
     result = await db`SELECT
@@ -935,6 +944,7 @@ ${sort ? db`ORDER BY avg_review DESC` : db`ORDER BY avg_review ASC`}`;
       WHERE products.products_id = products_picture.products_id
     ) as products_picture
   FROM products
+  WHERE products.qty > 0
   ${
     sort ? db`ORDER BY item_sold_count DESC` : db`ORDER BY item_sold_count ASC`
   }`;
