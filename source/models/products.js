@@ -820,6 +820,9 @@ const getAllProduct = async (params) => {
   return result;
 };
 
+const getAllBrand = async () => {
+  return await db`SELECT brand FROM products`;
+};
 
 const getAllProductByName = async (params) => {
   const { id } = params;
@@ -1253,4 +1256,5 @@ module.exports = {
   getProductPictureByProductId,
   deleteProduct,
   addReviewOnly,
+  getAllBrand,
 };

@@ -15,12 +15,38 @@ const getProducts = async (req, res) => {
       sizeFilter,
       categoryFilter,
       brandFilter,
+      allBrand,
     } = req.query;
 
     const totalDatas = await models.getAllProduct({ orderBy });
 
     let getUsersData;
     let getAllData;
+
+    if (allBrand && !colorFilter && !categoryFilter && !brandFilter) {
+      let getUsersData = await models.getAllBrand();
+      let result = [];
+
+      for (let i = 0; i < getUsersData.length; i++) {
+        result.push(getUsersData[i].brand);
+      }
+
+      const uniqueBrands = Array.from(new Set(result));
+
+      uniqueBrands.sort(function (a, b) {
+        return a.charAt(0) > b.charAt(0) ? 1 : -1;
+      });
+
+      if (uniqueBrands.length) {
+        res.status(200).json({
+          message: `Get all brand name`,
+          data: JSON.stringify(uniqueBrands),
+        });
+        return;
+      } else {
+        throw { code: 422, message: "Data not found" };
+      }
+    }
 
     if (colorFilter || sizeFilter || categoryFilter || brandFilter) {
       if (!sort && !page && !limit) {
