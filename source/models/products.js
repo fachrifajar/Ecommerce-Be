@@ -839,6 +839,21 @@ WHERE product_name ILIKE '%' || ${id} || '%' AND products.qty > 0
 ORDER BY products.created_at ASC`;
 };
 
+const getAllProductBySlug = async (params) => {
+  const { id } = params;
+
+  return await db`SELECT
+  products.*, 
+  (
+    SELECT COALESCE(json_agg(row_to_json(products_picture.*)), '[]'::json) 
+    FROM products_picture 
+    WHERE products.products_id = products_picture.products_id
+  ) as products_picture
+FROM products
+WHERE slug = ${id}
+ORDER BY products.created_at ASC`;
+};
+
 const getProfile = async (params) => {
   const { sellerIdvalidator } = params;
 
@@ -1257,4 +1272,5 @@ module.exports = {
   deleteProduct,
   addReviewOnly,
   getAllBrand,
+  getAllProductBySlug,
 };

@@ -98,24 +98,54 @@ const getProducts = async (req, res) => {
         (!colorFilter || !sizeFilter || !categoryFilter || !brandFilter)
       ) {
         console.log("test bawah 1");
-        getUsersData = await models.getAllProductByName({ id });
-        connectRedis.set("find_users", true, "ex", 10);
-        connectRedis.set("url", req.originalUrl, "ex", 10);
-        connectRedis.set("Id_users", id, "ex", 10);
-        connectRedis.set(
-          "getReqAccount",
-          JSON.stringify(getUsersData),
-          "ex",
-          10
-        );
-        if (getUsersData.length > 0) {
-          res.json({
-            message: `Get product with products_id: ${id}`,
-            data: getUsersData,
-          });
-          return;
+
+        let validation = false;
+        for (let i = 0; i < id.length; i++) {
+          if (id[i] == "-") {
+            validation = true;
+          }
+        }
+        console.log(validation);
+        if (validation) {
+          getUsersData = await models.getAllProductBySlug({ id });
+          connectRedis.set("find_users", true, "ex", 10);
+          connectRedis.set("url", req.originalUrl, "ex", 10);
+          connectRedis.set("Id_users", id, "ex", 10);
+          connectRedis.set(
+            "getReqAccount",
+            JSON.stringify(getUsersData),
+            "ex",
+            10
+          );
+          if (getUsersData.length > 0) {
+            res.json({
+              message: `Get product with slug: ${id}`,
+              data: getUsersData,
+            });
+            return;
+          } else {
+            throw { code: 422, message: "Data not found" };
+          }
         } else {
-          throw { code: 422, message: "Data not found" };
+          getUsersData = await models.getAllProductByName({ id });
+          connectRedis.set("find_users", true, "ex", 10);
+          connectRedis.set("url", req.originalUrl, "ex", 10);
+          connectRedis.set("Id_users", id, "ex", 10);
+          connectRedis.set(
+            "getReqAccount",
+            JSON.stringify(getUsersData),
+            "ex",
+            10
+          );
+          if (getUsersData.length > 0) {
+            res.json({
+              message: `Get product with product name: ${id}`,
+              data: getUsersData,
+            });
+            return;
+          } else {
+            throw { code: 422, message: "Data not found" };
+          }
         }
       }
       if (
