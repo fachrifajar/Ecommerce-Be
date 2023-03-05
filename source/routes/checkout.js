@@ -13,6 +13,22 @@ router.post(
   usersController.addCheckout
 );
 
+// UPDATE 
+router.patch(
+  "/edit/",
+  authMiddleware.validateToken,
+  authMiddleware.validateRole,
+  usersController.updateCheckout
+);
+
+// DELETE
+router.delete(
+  "/delete",
+  authMiddleware.validateToken,
+  authMiddleware.validateRole,
+  usersController.deleteCheckout
+);
+
 // READ
 router.get(
   "/detail",

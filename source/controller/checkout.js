@@ -110,6 +110,102 @@ const addCheckout = async (req, res) => {
   }
 };
 
+const updateCheckout = async (req, res) => {
+  try {
+    const { qty, products_id, checkout_id } = req.body;
+
+    const idValidator = req.users_id;
+    const getData = await models.getAllProductById({ id: products_id });
+    const getProductName = getData[0]?.product_name;
+
+    if (!getData.length) {
+      throw { code: 400, message: "Products_id not identified" };
+    }
+
+    const getQty = getData[0]?.qty;
+
+    if (getQty <= 0) {
+      throw {
+        code: 400,
+        message: `${getProductName} is sold out!`,
+      };
+    }
+
+    if (parseInt(qty) > parseInt(getQty)) {
+      throw {
+        code: 400,
+        message: `${getProductName}, only available ${getQty} items`,
+      };
+    }
+
+    await models.updateCheckout({
+      qty,
+      checkout_id,
+      products_id,
+    });
+
+    res.status(201).json({
+      code: 201,
+      message: `Success update Checkout for checkout_id: ${checkout_id} `,
+      data: req.body,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(error?.code ?? 500).json({
+      message: error,
+    });
+  }
+};
+
+const deleteCheckout = async (req, res) => {
+  try {
+    const { checkout_id } = req.body;
+
+    const idValidator = req.users_id;
+    const getRole = await models.getRoles({ roleValidator: idValidator });
+    const isAdmin = getRole[0]?.role;
+
+    console.log(isAdmin);
+    console.log(idValidator);
+
+    const getAllData = await models.checkCheckout({ checkout_id, idValidator });
+    console.log(getAllData);
+    if (getAllData.length == 0) {
+      throw {
+        code: 400,
+        message:
+          "ID not identified. Please you can only delete YOUR OWN CHECKOUT",
+      };
+    }
+
+    if (getAllData[0]?.status == "paid") {
+      throw { code: 400, message: "CANT DELETE DATA THAT ALREADY PAID" };
+    }
+
+    let valid = false;
+    if (getAllData[0]?.users_id == idValidator) {
+      valid = true;
+    }
+
+    if (isAdmin == "admin" || valid) {
+      await models.deleteCheckout({ checkout_id });
+      res.json({
+        status: "true",
+        message: "CHECKOUT DELETED!",
+      });
+    } else {
+      throw {
+        code: 401,
+        message: "Access not granted, only admin can access this section!",
+      };
+    }
+  } catch (error) {
+    res.status(error?.code ?? 500).json({
+      message: error.message,
+    });
+  }
+};
+
 const getCheckout = async (req, res) => {
   try {
     const idValidator = req.users_id;
@@ -172,4 +268,6 @@ module.exports = {
   getCheckout,
   getHistory,
   getHistoryAll,
+  updateCheckout,
+  deleteCheckout,
 };
