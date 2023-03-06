@@ -32,9 +32,10 @@ const addCheckout = async (params) => {
 };
 
 const updateCheckout = async (params) => {
-  const { qty, checkout_id, products_id } = params;
+  const { qty, checkout_id, products_id, total_est } = params;
 
   return await db`UPDATE checkout SET qty = ${qty},
+  total_est = ${total_est}, 
   updated_at = NOW() AT TIME ZONE 'Asia/Jakarta' 
   WHERE checkout_id = ${checkout_id}`;
 };

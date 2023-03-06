@@ -112,7 +112,7 @@ const addCheckout = async (req, res) => {
 
 const updateCheckout = async (req, res) => {
   try {
-    const { qty, products_id, checkout_id } = req.body;
+    const { qty, products_id, checkout_id, total_est } = req.body;
 
     const idValidator = req.users_id;
     const getData = await models.getAllProductById({ id: products_id });
@@ -142,6 +142,7 @@ const updateCheckout = async (req, res) => {
       qty,
       checkout_id,
       products_id,
+      total_est,
     });
 
     res.status(201).json({
@@ -165,11 +166,8 @@ const deleteCheckout = async (req, res) => {
     const getRole = await models.getRoles({ roleValidator: idValidator });
     const isAdmin = getRole[0]?.role;
 
-    console.log(isAdmin);
-    console.log(idValidator);
-
     const getAllData = await models.checkCheckout({ checkout_id, idValidator });
-    console.log(getAllData);
+
     if (getAllData.length == 0) {
       throw {
         code: 400,
