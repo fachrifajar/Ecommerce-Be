@@ -117,6 +117,9 @@ const updateCheckout = async (req, res) => {
     const idValidator = req.users_id;
     const getData = await models.getAllProductById({ id: products_id });
     const getProductName = getData[0]?.product_name;
+    const getPrice = getData[0]?.price;
+    const getTotal = parseInt(getPrice) * qty;
+    console.log(getTotal);
 
     if (!getData.length) {
       throw { code: 400, message: "Products_id not identified" };
@@ -142,7 +145,7 @@ const updateCheckout = async (req, res) => {
       qty,
       checkout_id,
       products_id,
-      total_est,
+      total_est: getTotal,
     });
 
     res.status(201).json({
