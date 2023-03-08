@@ -122,7 +122,6 @@ const getProfile = async (params) => {
   return profile[0];
 };
 
-
 const getAllUsersCustPaginationSort = async (params) => {
   const { limit, page, sort } = params;
 
@@ -310,8 +309,20 @@ const updateUsersCustPartial = async (params) => {
     id,
     gender,
     date_of_birth,
-    address,
+    // address,
   } = params;
+
+  // return await db`UPDATE customers
+  // SET email = ${email || defaultValue?.email},
+  //  phone_number = ${phone_number || defaultValue?.phone_number},
+  //  username = ${username || defaultValue?.username},
+  //  password =${password || defaultValue?.password},
+  //  profile_picture = ${profile_picture || defaultValue?.profile_picture},
+  //  gender = ${gender || defaultValue?.gender},
+  //  date_of_birth = ${date_of_birth || defaultValue?.date_of_birth},
+  //  address = ${address || defaultValue?.address},
+  //  updated_at = NOW() AT TIME ZONE 'Asia/Jakarta'
+  // WHERE users_id = ${id} `;
 
   return await db`UPDATE customers
   SET email = ${email || defaultValue?.email},
@@ -321,7 +332,6 @@ const updateUsersCustPartial = async (params) => {
    profile_picture = ${profile_picture || defaultValue?.profile_picture},
    gender = ${gender || defaultValue?.gender},
    date_of_birth = ${date_of_birth || defaultValue?.date_of_birth},
-   address = ${address || defaultValue?.address},
    updated_at = NOW() AT TIME ZONE 'Asia/Jakarta' 
   WHERE users_id = ${id} `;
 };
@@ -363,12 +373,15 @@ const checkUsernameSellers = async (params) => {
 };
 
 const updateUsersSellerParallel = async (params) => {
-  const { phone_number, id } = params;
+  const { email, phone_number, username, password, defaultValue, id } = params;
 
   return await db`UPDATE sellers
-    SET phone_number = ${phone_number || defaultValue?.phone_number},
-     updated_at = NOW() AT TIME ZONE 'Asia/Jakarta' 
-    WHERE users_id = ${id} `;
+    SET email = ${email || defaultValue?.email},
+        phone_number = ${phone_number || defaultValue?.phone_number},
+        username = ${username || defaultValue?.username},
+        password = ${password || defaultValue?.password},
+        updated_at = NOW() AT TIME ZONE 'Asia/Jakarta' 
+    WHERE users_id = ${id}`;
 };
 
 module.exports = {

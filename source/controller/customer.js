@@ -109,7 +109,7 @@ const getSpecificUsersCust = async (req, res) => {
       data: profileData,
     });
   } catch (error) {
-    console.error(error)
+    console.error(error);
     res.status(400).json({
       message: "Bad Request",
       error: error,
@@ -269,6 +269,8 @@ const updateUsersCustPartial = async (req, res) => {
     if (getAllData.length == 0) {
       throw { code: 400, message: "ID not identified" };
     }
+    console.log(getAllData);
+    console.log("test bawah", getAllData[0].sellers[0].email);
 
     if (email) {
       const checkEmailSeller = await models.checkEmailSeller({ email });
@@ -286,6 +288,7 @@ const updateUsersCustPartial = async (req, res) => {
     }
 
     if (username) {
+      console.log(username);
       const checkUsernameSellers = await models.checkUsernameSellers({
         username,
       });
@@ -319,6 +322,7 @@ const updateUsersCustPartial = async (req, res) => {
 
     if (!req.files) {
       if (password == undefined) {
+        console.log("test atas");
         await models.updateUsersCustPartial({
           email,
           defaultValue: getAllData[0],
@@ -329,8 +333,22 @@ const updateUsersCustPartial = async (req, res) => {
           id: roleValidator,
           gender,
           date_of_birth,
-          address,
+          // address,
         });
+        console.log("test bawah", getAllData[0].sellers[0]);
+
+        if (getAllData[0].seller_id) {
+          console.log("MASUK");
+          await models.updateUsersSellerParallel({
+            email,
+            phone_number,
+            username,
+            password,
+            defaultValue: getAllData[0].sellers[0],
+            id: sellerIdvalidator,
+          });
+          console.log("MASUK2");
+        }
       } else {
         bcrypt.hash(password, saltRounds, async function (err, hash) {
           try {
@@ -348,8 +366,20 @@ const updateUsersCustPartial = async (req, res) => {
               id: roleValidator,
               gender,
               date_of_birth,
-              address,
+              // address,
             });
+
+            if (getAllData[0].seller_id) {
+              console.log("MASUK BAWAH");
+              await models.updateUsersSellerParallel({
+                email,
+                phone_number,
+                username,
+                password,
+                defaultValue: getAllData[0].sellers[0],
+                id: sellerIdvalidator,
+              });
+            }
           } catch (error) {
             res.status(error?.code ?? 500).json({
               message: error.message ?? error,
@@ -375,12 +405,9 @@ const updateUsersCustPartial = async (req, res) => {
           let getPhoto = getAllData[0].profile_picture;
           let getPhotoConvert = getPhoto.split("ecommerce/");
 
-          cloudinary.v2.uploader.destroy(
-            getPhoto,
-            function (error, result) {
-              console.log(result, error);
-            }
-          );
+          cloudinary.v2.uploader.destroy(getPhoto, function (error, result) {
+            console.log(result, error);
+          });
 
           cloudinary.v2.uploader.upload(
             file.tempFilePath,
@@ -400,8 +427,19 @@ const updateUsersCustPartial = async (req, res) => {
                 id: roleValidator,
                 gender,
                 date_of_birth,
-                address,
+                // address,
               });
+
+              if (sellerIdvalidator) {
+                await models.updateUsersSellerParallel({
+                  email,
+                  phone_number,
+                  username,
+                  password,
+                  defaultValue: getAllData[0].sellers[0],
+                  id: sellerIdvalidator,
+                });
+              }
             }
           );
         } else {
@@ -409,12 +447,9 @@ const updateUsersCustPartial = async (req, res) => {
           let getPhoto = getAllData[0].profile_picture;
           let getPhotoConvert = getPhoto.split("ecommerce/");
 
-          cloudinary.v2.uploader.destroy(
-            getPhoto,
-            function (error, result) {
-              console.log(result, error);
-            }
-          );
+          cloudinary.v2.uploader.destroy(getPhoto, function (error, result) {
+            console.log(result, error);
+          });
 
           cloudinary.v2.uploader.upload(
             file.tempFilePath,
@@ -439,8 +474,19 @@ const updateUsersCustPartial = async (req, res) => {
                     id: roleValidator,
                     gender,
                     date_of_birth,
-                    address,
+                    // address,
                   });
+
+                  if (sellerIdvalidator) {
+                    await models.updateUsersSellerParallel({
+                      email,
+                      phone_number,
+                      username,
+                      password,
+                      defaultValue: getAllData[0].sellers[0],
+                      id: sellerIdvalidator,
+                    });
+                  }
                 } catch (error) {
                   res.status(500).json({
                     message: error.message,
@@ -586,12 +632,9 @@ const updateUsersCustAll = async (req, res) => {
             let getPhoto = getAllData[0].profile_picture;
             let getPhotoConvert = getPhoto.split("ecommerce/");
 
-            cloudinary.v2.uploader.destroy(
-              getPhoto,
-              function (error, result) {
-                console.log(result, error);
-              }
-            );
+            cloudinary.v2.uploader.destroy(getPhoto, function (error, result) {
+              console.log(result, error);
+            });
 
             cloudinary.v2.uploader.upload(
               file.tempFilePath,
@@ -620,12 +663,9 @@ const updateUsersCustAll = async (req, res) => {
             let getPhoto = getAllData[0].profile_picture;
             let getPhotoConvert = getPhoto.split("ecommerce/");
 
-            cloudinary.v2.uploader.destroy(
-              getPhoto,
-              function (error, result) {
-                console.log(result, error);
-              }
-            );
+            cloudinary.v2.uploader.destroy(getPhoto, function (error, result) {
+              console.log(result, error);
+            });
 
             cloudinary.v2.uploader.upload(
               file.tempFilePath,
