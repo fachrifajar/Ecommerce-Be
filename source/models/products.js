@@ -1240,7 +1240,15 @@ const getAllMyProducts = async (params) => {
 const getAllMyProductsPaginationSort = async (params) => {
   const { idValidator, page, limit, sort } = params;
 
-  return await db`SELECT * FROM products WHERE users_id = ${idValidator} AND qty != 0 AND is_archived = false
+  return await db`SELECT
+  products.*, 
+  (
+    SELECT COALESCE(json_agg(row_to_json(products_picture.*)), '[]'::json) 
+    FROM products_picture 
+    WHERE products.products_id = products_picture.products_id
+  ) as products_picture
+FROM products
+WHERE users_id = ${idValidator} AND qty != 0 AND is_archived = false
 ${
   sort ? db`ORDER BY created_at DESC` : db`ORDER BY created_at ASC`
 } LIMIT ${limit} OFFSET ${limit * (page - 1)}`;
@@ -1249,7 +1257,15 @@ ${
 const getAllMyProductsSoldPaginationSort = async (params) => {
   const { idValidator, page, limit, sort } = params;
 
-  return await db`SELECT * FROM products WHERE users_id = ${idValidator} AND qty = 0 
+  return await db`SELECT
+  products.*, 
+  (
+    SELECT COALESCE(json_agg(row_to_json(products_picture.*)), '[]'::json) 
+    FROM products_picture 
+    WHERE products.products_id = products_picture.products_id
+  ) as products_picture
+FROM products
+WHERE users_id = ${idValidator} AND qty = 0 
 ${
   sort ? db`ORDER BY created_at DESC` : db`ORDER BY created_at ASC`
 } LIMIT ${limit} OFFSET ${limit * (page - 1)}`;
@@ -1258,7 +1274,15 @@ ${
 const getAllMyProductsArchived = async (params) => {
   const { idValidator, page, limit, sort } = params;
 
-  return await db`SELECT * FROM products WHERE users_id = ${idValidator} AND is_archived = true
+  return await db`SELECT
+  products.*, 
+  (
+    SELECT COALESCE(json_agg(row_to_json(products_picture.*)), '[]'::json) 
+    FROM products_picture 
+    WHERE products.products_id = products_picture.products_id
+  ) as products_picture
+FROM products
+WHERE users_id = ${idValidator} AND is_archived = true
 ${
   sort ? db`ORDER BY created_at DESC` : db`ORDER BY created_at ASC`
 } LIMIT ${limit} OFFSET ${limit * (page - 1)}`;
