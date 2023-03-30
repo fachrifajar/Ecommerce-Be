@@ -3,6 +3,57 @@ const { v4: uuidv4 } = require("uuid");
 const { connectRedis } = require("../middleware/redis");
 const { cloudinary } = require("../middleware/upload");
 
+const getMyProducts = async (req, res) => {
+  try {
+    const idValidator = req.seller_id;
+    console.log("idValidator", idValidator);
+
+    const { page, limit, sort, sold, archived } = req.query;
+
+    const totalDatas = await models.getAllMyProducts({ idValidator });
+
+    let getAllData;
+
+    if (!sold) {
+      getAllData = await models.getAllMyProductsPaginationSort({
+        sort,
+        page,
+        limit,
+        idValidator,
+      });
+    } else {
+      getAllData = await models.getAllMyProductsSoldPaginationSort({
+        sort,
+        page,
+        limit,
+        idValidator,
+      });
+    }
+
+    if (archived) {
+      getAllData = await models.getAllMyProductsArchived({
+        sort,
+        page,
+        limit,
+        idValidator,
+      });
+    }
+
+    res.json({
+      message: "Success get all data products",
+      code: 200,
+      total: totalDatas.length,
+      dataPerPage: getAllData.length,
+      page: `${page} from ${Math.ceil(totalDatas.length / limit)}`,
+      data: getAllData,
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: error,
+    });
+  }
+};
+
 const getProducts = async (req, res) => {
   try {
     const { id } = req.params;
@@ -763,4 +814,5 @@ module.exports = {
   deleteProductPicture,
   deleteProduct,
   addPhotoProducts,
+  getMyProducts,
 };

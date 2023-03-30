@@ -44,6 +44,14 @@ router.get(
   usersController.getProducts
 );
 
+router.get(
+  "/seller/myProducts",
+  authMiddleware.validateToken,
+  authMiddleware.validateRole,
+  // redisMiddleware.getUsersCust_redis,
+  usersController.getMyProducts
+);
+
 // UPDATE
 router.patch(
   "/edit/photo/:usersid",
