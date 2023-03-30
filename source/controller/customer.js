@@ -408,7 +408,7 @@ const updateUsersCustPartial = async (req, res) => {
           cloudinary.v2.uploader.destroy(getPhoto, function (error, result) {
             console.log(result, error);
           });
-
+          console.log("file===", file);
           cloudinary.v2.uploader.upload(
             file.tempFilePath,
             { public_id: uuidv4(), folder: "ecommerce" },

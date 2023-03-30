@@ -272,8 +272,10 @@ const addProducts = async (req, res) => {
 
     let files = req.files.product_picture;
     files = Array.isArray(files) ? files : [files];
-
+    // console.log("files->>",files)
     const uploads = files.map((file) => {
+      // console.log("file->>",file)
+
       return new Promise((resolve, reject) => {
         cloudinary.v2.uploader.upload(
           file.tempFilePath,
@@ -312,9 +314,11 @@ const addProducts = async (req, res) => {
       description,
       slug: split,
     });
+    console.log("returningProductsId->>>>>", returningProductsId);
 
     await Promise.all(
       uploadedPictures.map((picture) => {
+        console.log(picture);
         return models.addProductPicture({
           product_picture: picture,
           products_id: parseInt(returningProductsId),
@@ -326,6 +330,7 @@ const addProducts = async (req, res) => {
     res.status(201).json({
       code: 201,
       message: "Success add new Product",
+      products_id: returningProductsId,
       data: req.body,
     });
   } catch (error) {
