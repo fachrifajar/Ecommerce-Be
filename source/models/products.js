@@ -1155,6 +1155,7 @@ const updateProducts = async (params) => {
     description,
     id,
     defaultValue,
+    slug,
   } = params;
 
   return await db`UPDATE products
@@ -1167,6 +1168,7 @@ const updateProducts = async (params) => {
    brand = ${brand || defaultValue?.brand},
    condition =${condition || defaultValue?.condition},
    description = ${description || defaultValue?.description},
+   slug = ${slug},
    updated_at = NOW() AT TIME ZONE 'Asia/Jakarta' 
   WHERE products_id = ${id} `;
 };

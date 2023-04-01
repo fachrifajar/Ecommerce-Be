@@ -150,14 +150,14 @@ const getProducts = async (req, res) => {
       ) {
         console.log("test bawah 1");
 
-        let validation = false;
-        for (let i = 0; i < id.length; i++) {
-          if (id[i] == "-") {
-            validation = true;
-          }
-        }
-        console.log(validation);
-        if (validation) {
+        // let validation = false;
+        // for (let i = 0; i < id.length; i++) {
+        //   if (id[i] == "-") {
+        //     validation = true;
+        //   }
+        // }
+        // console.log(validation);
+        if (id) {
           getUsersData = await models.getAllProductBySlug({ id });
           connectRedis.set("find_users", true, "ex", 10);
           connectRedis.set("url", req.originalUrl, "ex", 10);
@@ -538,6 +538,7 @@ const updateProducts = async (req, res) => {
 
     if (isAdmin == "admin" || sellerIdvalidator == getAllData[0]?.users_id) {
       if (!req.files) {
+        const split = product_name.split(" ").join("-");
         await models.updateProducts({
           defaultValue: getAllData[0],
           id: usersid,
@@ -550,6 +551,7 @@ const updateProducts = async (req, res) => {
           brand,
           condition,
           description,
+          slug: product_name ? split : getAllData[0]?.slug,
         });
 
         res.json({
