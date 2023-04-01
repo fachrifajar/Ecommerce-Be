@@ -761,28 +761,44 @@ const deleteProductPicture = async (req, res) => {
       throw { code: 400, message: "ID not identified" };
     }
     console.log("test2");
-    if (isAdmin == "admin" || getAllData[0]?.users_id == idValidator) {
-      let getPhoto = getAllData[0].product_picture;
+    // if (isAdmin == "admin" || getAllData[0]?.users_id == idValidator) {
+    //   let getPhoto = getAllData[0].product_picture;
 
-      cloudinary.v2.uploader.destroy(
-        getPhoto,
-        { folder: "ecommerce" },
-        function (error, result) {
-          console.log(result, error);
-        }
-      );
+    //   cloudinary.v2.uploader.destroy(
+    //     getPhoto,
+    //     { folder: "ecommerce" },
+    //     function (error, result) {
+    //       console.log(result, error);
+    //     }
+    //   );
 
-      await models.deleteProductPicture({ id: products_picture_id });
-      res.json({
-        status: "true",
-        message: "PRODUCTS PICTURE DELETED!",
-      });
-    } else {
-      throw {
-        code: 401,
-        message: "Access not granted, only admin can access this section!",
-      };
-    }
+    //   await models.deleteProductPicture({ id: products_picture_id });
+    //   res.json({
+    //     status: "true",
+    //     message: "PRODUCTS PICTURE DELETED!",
+    //   });
+    // } else {
+    //   throw {
+    //     code: 401,
+    //     message: "Access not granted, only admin can access this section!",
+    //   };
+    // }
+
+    let getPhoto = getAllData[0].product_picture;
+
+    cloudinary.v2.uploader.destroy(
+      getPhoto,
+      { folder: "ecommerce" },
+      function (error, result) {
+        console.log(result, error);
+      }
+    );
+
+    await models.deleteProductPicture({ id: products_picture_id });
+    res.json({
+      status: "true",
+      message: "PRODUCTS PICTURE DELETED!",
+    });
   } catch (error) {
     res.status(error?.code ?? 500).json({
       message: error,
