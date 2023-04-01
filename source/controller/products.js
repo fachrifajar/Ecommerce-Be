@@ -409,45 +409,81 @@ const addPhotoProducts = async (req, res) => {
       sellerIdvalidator: idValidator,
     });
 
-    if (getData[0]?.users_id == idValidator || getRole[0] == "admin") {
-      let files = req.files.product_picture;
-      files = Array.isArray(files) ? files : [files];
+    // console.log(getRole)
+    // console.log(getData[0])
+    // console.log(idValidator)
 
-      const uploads = files.map((file) => {
-        return new Promise((resolve, reject) => {
-          cloudinary.v2.uploader.upload(
-            file.tempFilePath,
-            { public_id: uuidv4(), folder: "ecommerce" },
-            (error, result) => {
-              if (error) {
-                reject(error);
-              } else {
-                resolve(result.public_id);
-              }
+    // if (getData[0]?.users_id == idValidator || getRole[0] == "admin") {
+    //   let files = req.files.product_picture;
+    //   files = Array.isArray(files) ? files : [files];
+
+    //   const uploads = files.map((file) => {
+    //     return new Promise((resolve, reject) => {
+    //       cloudinary.v2.uploader.upload(
+    //         file.tempFilePath,
+    //         { public_id: uuidv4(), folder: "ecommerce" },
+    //         (error, result) => {
+    //           if (error) {
+    //             reject(error);
+    //           } else {
+    //             resolve(result.public_id);
+    //           }
+    //         }
+    //       );
+    //     });
+    //   });
+    //   console.log(uploads);
+    //   const uploadedPictures = await Promise.all(uploads);
+    //   console.log(uploadedPictures);
+
+    //   await Promise.all(
+    //     uploadedPictures.map((picture) => {
+    //       return models.addProductPicture({
+    //         product_picture: picture,
+    //         products_id: productsid,
+    //         users_id: idValidator,
+    //       });
+    //     })
+    //   );
+    // } else {
+    //   throw {
+    //     code: 401,
+    //     message:
+    //       "Access not granted, only admin & valid user can access this section!",
+    //   };
+    // }
+
+    let files = req.files.product_picture;
+    files = Array.isArray(files) ? files : [files];
+
+    const uploads = files.map((file) => {
+      return new Promise((resolve, reject) => {
+        cloudinary.v2.uploader.upload(
+          file.tempFilePath,
+          { public_id: uuidv4(), folder: "ecommerce" },
+          (error, result) => {
+            if (error) {
+              reject(error);
+            } else {
+              resolve(result.public_id);
             }
-          );
-        });
+          }
+        );
       });
-      console.log(uploads);
-      const uploadedPictures = await Promise.all(uploads);
-      console.log(uploadedPictures);
+    });
+    console.log(uploads);
+    const uploadedPictures = await Promise.all(uploads);
+    console.log(uploadedPictures);
 
-      await Promise.all(
-        uploadedPictures.map((picture) => {
-          return models.addProductPicture({
-            product_picture: picture,
-            products_id: productsid,
-            users_id: idValidator,
-          });
-        })
-      );
-    } else {
-      throw {
-        code: 401,
-        message:
-          "Access not granted, only admin & valid user can access this section!",
-      };
-    }
+    await Promise.all(
+      uploadedPictures.map((picture) => {
+        return models.addProductPicture({
+          product_picture: picture,
+          products_id: productsid,
+          users_id: idValidator,
+        });
+      })
+    );
 
     res.status(201).json({
       code: 201,
