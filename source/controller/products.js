@@ -574,16 +574,32 @@ const updateProducts = async (req, res) => {
 
     if (isAdmin == "admin" || sellerIdvalidator == getAllData[0]?.users_id) {
       if (!req.files) {
-        const split = product_name.split(" ").join("-");
+        let split;
+        if (product_name) {
+          split = product_name.split(" ").join("-");
+        }
+
+        let colorConverted;
+        if (color) {
+          const regexColor = /(\b\w+\b)(?=,|$)/g;
+          colorConverted = `{"${color.match(regexColor).join('", "')}"}`;
+        }
+
+        let sizeConverted;
+        if (size) {
+          const regexSize = /(\b\w+\b)(?=,|$)/g;
+          sizeConverted = `{"${size.match(regexSize).join('", "')}"}`;
+        }
+
         await models.updateProducts({
           defaultValue: getAllData[0],
           id: usersid,
           product_name,
           price,
           qty,
-          color,
+          color: colorConverted,
           category,
-          size,
+          size: sizeConverted,
           brand,
           condition,
           description,
